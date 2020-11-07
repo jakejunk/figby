@@ -91,25 +91,27 @@ class HorizontalSmushingTests {
         }
 
         @TestFactory
-        fun `trySmush where both inputs are part of a class`() = charClassMap
-            .keys.toList()
-            .let { keys -> cartesianProduct(keys, keys) { left, right ->
-                val leftClass = charClassMap[left]!!
-                val rightClass = charClassMap[right]!!
-                val result = smusher.trySmush(left, right, 0)
+        fun `trySmush where left and right are part of a class`() = charClassMap.keys
+            .toList()
+            .let { keys ->
+                cartesianProduct(keys, keys) { left, right ->
+                    val leftClass = charClassMap[left]!!
+                    val rightClass = charClassMap[right]!!
+                    val result = smusher.trySmush(left, right, 0)
 
-                when {
-                    leftClass > rightClass -> DynamicTest.dynamicTest("$left can smush $right") {
-                        assertEquals(left, result)
-                    }
-                    leftClass < rightClass -> DynamicTest.dynamicTest("$left can be smushed by $right") {
-                        assertEquals(right, result)
-                    }
-                    else -> DynamicTest.dynamicTest("$left cannot smush $right") {
-                        assertNull(result)
+                    when {
+                        leftClass > rightClass -> DynamicTest.dynamicTest("$left can smush $right") {
+                            assertEquals(left, result)
+                        }
+                        leftClass < rightClass -> DynamicTest.dynamicTest("$left can be smushed by $right") {
+                            assertEquals(right, result)
+                        }
+                        else -> DynamicTest.dynamicTest("$left cannot smush $right") {
+                            assertNull(result)
+                        }
                     }
                 }
-            } }.toList()
+            }.toList()
 
         @Test
         fun `trySmush returns null if either input isn't part of a class`() {
@@ -119,6 +121,41 @@ class HorizontalSmushingTests {
             assertNull(smusher.trySmush(randomChar, classMember, 0))
             assertNull(smusher.trySmush(classMember, randomChar, 0))
             assertNull(smusher.trySmush(randomChar, randomChar, 0))
+        }
+    }
+
+    class OppositePair {
+        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.OppositePair)
+        private val pairs = mapOf(
+            '[' to ']',
+            ']' to '[',
+            '{' to '}',
+            '}' to '{',
+            '(' to ')',
+            ')' to '(',
+        ).entries.associate { (key, value) ->
+            key.toInt() to value.toInt()
+        }
+
+        // Fun fact: This function will not compile if the signature contains a '|' character
+        @TestFactory
+        fun `trySmush returns vertical bar when left and right are opposing brackets, braces, or parenthesis`() = pairs
+            .map { (left, right) ->
+                DynamicTest.dynamicTest("'$left' can smush '$right'") {
+                    val expected = '|'.toInt()
+                    val result = smusher.trySmush(left, right, 0)
+
+                    assertEquals(expected, result)
+                }
+            }
+
+        @Test
+        fun `trySmush returns null when left and right do not form a valid pair`() {
+            val left = '{'.toInt()
+            val right = ']'.toInt()
+            val result = smusher.trySmush(left, right, 0)
+
+            assertNull(result)
         }
     }
 }
