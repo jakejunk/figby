@@ -13,6 +13,7 @@ repositories {
 }
 
 dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation(kotlin("test-junit"))
 }
 
@@ -23,6 +24,9 @@ application {
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "11"
+    }
+    withType<Test> {
+        useJUnitPlatform()
     }
     wrapper {
         gradleVersion = "6.3"
