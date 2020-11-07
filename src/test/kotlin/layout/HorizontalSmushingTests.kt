@@ -223,4 +223,47 @@ class HorizontalSmushingTests {
             assertNull(smusher.trySmush(hardblank, hardblank, randomChar))
         }
     }
+
+    class NoRules {
+        private val smusher = HorizontalSmusher()
+
+        @Test
+        fun `trySmush returns null for any combination of inputs`() {
+            val randomChars = listOf('j', '$', '{').map(Char::toInt)
+
+            randomChars.forEach { left ->
+                randomChars.forEach { right ->
+                    randomChars.forEach { hardblank ->
+                        assertNull(smusher.trySmush(left, right, hardblank))
+                    }
+                }
+            }
+        }
+    }
+
+    class MultipleRules {
+        private val smusher = HorizontalSmusher(
+            HorizontalSmusher.Rule.EqualCharacter,
+            HorizontalSmusher.Rule.Underscore,
+            HorizontalSmusher.Rule.Hierarchy,
+            HorizontalSmusher.Rule.OppositePair,
+            HorizontalSmusher.Rule.BigX,
+            HorizontalSmusher.Rule.Hardblank
+        )
+
+        @Test
+        fun `trySmush returns values when given any set of rule-matching inputs`() {
+            val lessThan = '<'.toInt()
+            val greaterThan = '>'.toInt()
+            val openParen = '('.toInt()
+            val closeParen = ')'.toInt()
+
+            assertEquals(lessThan, smusher.trySmush(lessThan, lessThan, 0))        // Equal character
+            assertEquals(lessThan, smusher.trySmush('_'.toInt(), lessThan, 0))     // Underscore
+            assertEquals(lessThan, smusher.trySmush(openParen, lessThan, 0))       // Hierarchy
+            assertEquals('|'.toInt(), smusher.trySmush(openParen, closeParen, 0))  // Opposite pair
+            assertEquals('X'.toInt(), smusher.trySmush(greaterThan, lessThan, 0))  // Big X
+            assertEquals(lessThan, smusher.trySmush(lessThan, lessThan, lessThan)) // Big X
+        }
+    }
 }
