@@ -1,16 +1,10 @@
 package layout
 
-import java.util.*
-
-class HorizontalSmushing(rules: List<Rule>) {
-    private val ruleSet = when {
-        rules.isEmpty() -> EnumSet.noneOf(Rule::class.java)
-        else -> EnumSet.copyOf(rules)
-    }
+class HorizontalSmusher(vararg rules: Rule) {
+    private val ruleSet = rules.asSequence()
 
     fun trySmush(left: Int, right: Int, hardblank: Int): Int? {
         return ruleSet
-            .asSequence()
             .map { rule -> rule.apply(left, right, hardblank) }
             .firstOrNull { it != null }
     }
@@ -49,8 +43,8 @@ class HorizontalSmushing(rules: List<Rule>) {
             ).mapKeys { it.key.toInt() }
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
-                val leftClass = charClassMap.getOrElse(left) { 0 }
-                val rightClass = charClassMap.getOrElse(right) { 0 }
+                val leftClass = charClassMap[left] ?: return null
+                val rightClass = charClassMap[right] ?: return null
                 return when {
                     leftClass > rightClass -> left
                     leftClass < rightClass -> right
@@ -102,9 +96,9 @@ class HorizontalSmushing(rules: List<Rule>) {
     }
 }
 
-fun parseHorizontalSmushing(layoutMask: Int): HorizontalSmushing {
-    val rules = HorizontalSmushing.Rule.values()
+fun parseHorizontalSmushing(layoutMask: Int): HorizontalSmusher {
+    val rules = HorizontalSmusher.Rule.values()
         .filter { layoutMask and it.bitMask == it.bitMask }
 
-    return HorizontalSmushing(rules)
+    return HorizontalSmusher(*rules.toTypedArray())
 }

@@ -5,7 +5,7 @@ import java.util.*
 data class Layout(
     val horizontalLayout: HorizontalLayoutMode,
     val verticalLayout: VerticalLayoutMode,
-    val horizontalSmushing: HorizontalSmushing,
+    val horizontalSmusher: HorizontalSmusher,
     private val verticalSmushingRules: EnumSet<VerticalSmushingRule>
 )
 
@@ -36,13 +36,13 @@ fun parseFullLayout(fullLayout: String): Layout {
 private fun parseLayoutMask(layoutMask: Int): Layout {
     val hLayout = parseHorizontalLayout(layoutMask)
     val vLayout = parseVerticalLayout(layoutMask)
-    val hSmushingRules = parseHorizontalSmushing(layoutMask)
+    val horizontalSmusher = parseHorizontalSmushing(layoutMask)
     val vSmushingRules = parseVerticalSmushingRules(layoutMask)
 
     return Layout(
         horizontalLayout = hLayout,
         verticalLayout = vLayout,
-        horizontalSmushing = hSmushingRules,
+        horizontalSmusher = horizontalSmusher,
         verticalSmushingRules = vSmushingRules
     )
 }
