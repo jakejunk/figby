@@ -1,8 +1,14 @@
 package layout
 
-import java.util.*
+class HorizontalSmusher(vararg rules: Rule) {
+    private val ruleSet = rules.asSequence()
 
-class HorizontalSmushing(rules: List<Rule>) {
+    fun trySmush(left: Int, right: Int, hardblank: Int): Int? {
+        return ruleSet
+            .map { rule -> rule.apply(left, right, hardblank) }
+            .firstOrNull { it != null }
+    }
+
     enum class Rule(val bitMask: Int) {
         EqualCharacter(1) {
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
@@ -37,8 +43,8 @@ class HorizontalSmushing(rules: List<Rule>) {
             ).mapKeys { it.key.toInt() }
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
-                val leftClass = charClassMap.getOrElse(left) { 0 }
-                val rightClass = charClassMap.getOrElse(right) { 0 }
+                val leftClass = charClassMap[left] ?: return null
+                val rightClass = charClassMap[right] ?: return null
                 return when {
                     leftClass > rightClass -> left
                     leftClass < rightClass -> right
@@ -54,7 +60,9 @@ class HorizontalSmushing(rules: List<Rule>) {
                 '}' to '{',
                 '(' to ')',
                 ')' to '(',
-            ).mapKeys { it.key.toInt() }.mapValues { it.value.toInt() }
+            ).entries.associate { (key, value) ->
+                key.toInt() to value.toInt()
+            }
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
                 return when (pairs[left]) {
@@ -68,10 +76,11 @@ class HorizontalSmushing(rules: List<Rule>) {
                 Pair('/', '\\') to '|',
                 Pair('\\', '/') to 'Y',
                 Pair('>', '<') to 'X'
-            ).mapKeys {
-                val (left, right) = it.key
-                left.toInt() to right.toInt()
-            }.mapValues { it.value.toInt() }
+            ).entries.associate { (key, value) ->
+                val (left, right) = key
+
+                Pair(left.toInt(), right.toInt()) to value.toInt()
+            }
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
                 return xPairs[Pair(left, right)]
@@ -88,23 +97,11 @@ class HorizontalSmushing(rules: List<Rule>) {
 
         abstract fun apply(left: Int, right: Int, hardblank: Int): Int?
     }
-
-    private val ruleSet = when {
-        rules.isEmpty() -> EnumSet.noneOf(Rule::class.java)
-        else -> EnumSet.copyOf(rules)
-    }
-
-    fun trySmush(left: Int, right: Int, hardblank: Int): Int? {
-        return ruleSet
-            .asSequence()
-            .map { rule -> rule.apply(left, right, hardblank) }
-            .firstOrNull { it != null }
-    }
 }
 
-fun parseHorizontalSmushing(layoutMask: Int): HorizontalSmushing {
-    val rules = HorizontalSmushing.Rule.values()
+fun parseHorizontalSmushing(layoutMask: Int): HorizontalSmusher {
+    val rules = HorizontalSmusher.Rule.values()
         .filter { layoutMask and it.bitMask == it.bitMask }
 
-    return HorizontalSmushing(rules)
+    return HorizontalSmusher(*rules.toTypedArray())
 }

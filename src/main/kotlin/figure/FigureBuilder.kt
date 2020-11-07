@@ -70,7 +70,7 @@ class FigureBuilder(
 
     private fun getSmushingAdjustment(linesToAppend: List<FigCharLine>): Pair<Int, List<Int?>> {
         val hardblank = font.info.hardblank
-        val horizontalSmushing = font.info.layout.horizontalSmushing
+        val horizontalSmushing = font.info.layout.horizontalSmusher
         val adjustments = lines
             .mapIndexed { i, line ->
                 line.getSmushingAdjustment(linesToAppend[i], hardblank, horizontalSmushing)
