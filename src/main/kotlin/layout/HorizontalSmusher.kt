@@ -76,10 +76,11 @@ class HorizontalSmusher(vararg rules: Rule) {
                 Pair('/', '\\') to '|',
                 Pair('\\', '/') to 'Y',
                 Pair('>', '<') to 'X'
-            ).mapKeys {
-                val (left, right) = it.key
-                left.toInt() to right.toInt()
-            }.mapValues { it.value.toInt() }
+            ).entries.associate { (key, value) ->
+                val (left, right) = key
+
+                Pair(left.toInt(), right.toInt()) to value.toInt()
+            }
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
                 return xPairs[Pair(left, right)]

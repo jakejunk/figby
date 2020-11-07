@@ -158,4 +158,47 @@ class HorizontalSmushingTests {
             assertNull(result)
         }
     }
+
+    class BigX {
+        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.BigX)
+
+        @Test
+        fun `trySmush returns vertical bar when left is forward slash and right is backslash`() {
+            val expected = '|'.toInt()
+            val left = '/'.toInt()
+            val right = '\\'.toInt()
+            val result = smusher.trySmush(left, right, 0)
+
+            assertEquals(expected, result)
+        }
+
+        @Test
+        fun `trySmush returns 'Y' when left is backslash and right is forward slash`() {
+            val expected = 'Y'.toInt()
+            val left = '\\'.toInt()
+            val right = '/'.toInt()
+            val result = smusher.trySmush(left, right, 0)
+
+            assertEquals(expected, result)
+        }
+
+        @Test
+        fun `trySmush returns 'X' when left is greater-than and right is less-than`() {
+            val expected = 'X'.toInt()
+            val left = '>'.toInt()
+            val right = '<'.toInt()
+            val result = smusher.trySmush(left, right, 0)
+
+            assertEquals(expected, result)
+        }
+
+        @Test
+        fun `trySmush returns null when left and right do not form a valid pair`() {
+            val left = '<'.toInt()
+            val right = '>'.toInt()
+            val result = smusher.trySmush(left, right, 0)
+
+            assertNull(result)
+        }
+    }
 }
