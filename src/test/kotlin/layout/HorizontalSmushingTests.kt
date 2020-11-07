@@ -201,4 +201,26 @@ class HorizontalSmushingTests {
             assertNull(result)
         }
     }
+
+    class Hardblank {
+        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.Hardblank)
+
+        @Test
+        fun `trySmush returns hardblank when all inputs are hardblanks`() {
+            val hardblank = '$'.toInt()
+            val result = smusher.trySmush(hardblank, hardblank, hardblank)
+
+            assertEquals(hardblank, result)
+        }
+
+        @Test
+        fun `trySmush returns null when given any other combination of inputs`() {
+            val randomChar = 'j'.toInt()
+            val hardblank = '$'.toInt()
+
+            assertNull(smusher.trySmush(randomChar, hardblank, hardblank))
+            assertNull(smusher.trySmush(hardblank, randomChar, hardblank))
+            assertNull(smusher.trySmush(hardblank, hardblank, randomChar))
+        }
+    }
 }
