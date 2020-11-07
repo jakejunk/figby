@@ -3,6 +3,18 @@ package layout
 import java.util.*
 
 class HorizontalSmushing(rules: List<Rule>) {
+    private val ruleSet = when {
+        rules.isEmpty() -> EnumSet.noneOf(Rule::class.java)
+        else -> EnumSet.copyOf(rules)
+    }
+
+    fun trySmush(left: Int, right: Int, hardblank: Int): Int? {
+        return ruleSet
+            .asSequence()
+            .map { rule -> rule.apply(left, right, hardblank) }
+            .firstOrNull { it != null }
+    }
+
     enum class Rule(val bitMask: Int) {
         EqualCharacter(1) {
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
@@ -87,18 +99,6 @@ class HorizontalSmushing(rules: List<Rule>) {
         };
 
         abstract fun apply(left: Int, right: Int, hardblank: Int): Int?
-    }
-
-    private val ruleSet = when {
-        rules.isEmpty() -> EnumSet.noneOf(Rule::class.java)
-        else -> EnumSet.copyOf(rules)
-    }
-
-    fun trySmush(left: Int, right: Int, hardblank: Int): Int? {
-        return ruleSet
-            .asSequence()
-            .map { rule -> rule.apply(left, right, hardblank) }
-            .firstOrNull { it != null }
     }
 }
 
