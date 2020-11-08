@@ -6,7 +6,7 @@ import org.junit.jupiter.api.TestFactory
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class HorizontalSmushingTests {
+class HorizontalSmusherTests {
     class EqualCharacter {
         private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.EqualCharacter)
 
