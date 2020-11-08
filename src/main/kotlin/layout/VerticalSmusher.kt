@@ -19,8 +19,17 @@ class VerticalSmusher(vararg rules: Rule) {
             }
         },
         Underscore(512) {
+            private val underscore = '_'.toInt()
+            private val underscoreReplacers = listOf(
+                '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
+            ).map(Char::toInt)
+
             override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
-                TODO("Not yet implemented")
+                return when {
+                    top == underscore && bottom in underscoreReplacers -> bottom
+                    bottom == underscore && top in underscoreReplacers -> top
+                    else -> null
+                }
             }
         },
         Hierarchy(1024) {
