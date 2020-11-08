@@ -1,5 +1,6 @@
 package layout
 
+import cartesianProduct
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -62,6 +63,51 @@ class VerticalSmusherTests {
             val result = smusher.trySmush(underscore, other, 0)
 
             assertNull(result)
+        }
+    }
+
+    class Hierarchy {
+        private val smusher = VerticalSmusher(VerticalSmusher.Rule.Hierarchy)
+        private val charClassMap = mapOf(
+            '|' to 1,
+            '/' to 2, '\\' to 2,
+            '[' to 3, ']' to 3,
+            '{' to 4, '}' to 4,
+            '(' to 5, ')' to 5,
+            '<' to 6, '>' to 6,
+        ).mapKeys { it.key.toInt() }
+
+        @TestFactory
+        fun `trySmush where top and bottom are part of a class`() = charClassMap.keys
+            .toList()
+            .let { keys ->
+                cartesianProduct(keys, keys) { top, bottom ->
+                    val topClass = charClassMap[top]!!
+                    val bottomClass = charClassMap[bottom]!!
+                    val result = smusher.trySmush(top, bottom, 0)
+
+                    when {
+                        topClass > bottomClass -> DynamicTest.dynamicTest("$top can smush $bottom") {
+                            assertEquals(top, result)
+                        }
+                        topClass < bottomClass -> DynamicTest.dynamicTest("$top can be smushed by $bottom") {
+                            assertEquals(bottom, result)
+                        }
+                        else -> DynamicTest.dynamicTest("$top cannot smush $bottom") {
+                            assertNull(result)
+                        }
+                    }
+                }
+            }.toList()
+
+        @Test
+        fun `trySmush returns null if any input is not part of a class`() {
+            val randomChar = 'j'.toInt()
+            val classMember = '/'.toInt()
+
+            assertNull(smusher.trySmush(randomChar, classMember, 0))
+            assertNull(smusher.trySmush(classMember, randomChar, 0))
+            assertNull(smusher.trySmush(randomChar, randomChar, 0))
         }
     }
 }

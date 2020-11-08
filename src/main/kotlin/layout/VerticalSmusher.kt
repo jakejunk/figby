@@ -33,8 +33,23 @@ class VerticalSmusher(vararg rules: Rule) {
             }
         },
         Hierarchy(1024) {
+            private val charClassMap = mapOf(
+                '|' to 1,
+                '/' to 2, '\\' to 2,
+                '[' to 3, ']' to 3,
+                '{' to 4, '}' to 4,
+                '(' to 5, ')' to 5,
+                '<' to 6, '>' to 6,
+            ).mapKeys { it.key.toInt() }
+
             override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
-                TODO("Not yet implemented")
+                val topClass = charClassMap[top] ?: return null
+                val bottomClass = charClassMap[bottom] ?: return null
+                return when {
+                    topClass > bottomClass -> top
+                    topClass < bottomClass -> bottom
+                    else -> null
+                }
             }
         },
         HorizontalLine(2048) {
