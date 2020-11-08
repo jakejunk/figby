@@ -53,8 +53,16 @@ class VerticalSmusher(vararg rules: Rule) {
             }
         },
         HorizontalLine(2048) {
+            private val hyphen = '-'.toInt()
+            private val underscore = '_'.toInt()
+            private val equalSign = '='.toInt()
+
             override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
-                TODO("Not yet implemented")
+                return when {
+                    top == hyphen && bottom == underscore -> equalSign
+                    top == underscore && bottom == hyphen -> equalSign
+                    else -> null
+                }
             }
         },
         VerticalLine(4096) {

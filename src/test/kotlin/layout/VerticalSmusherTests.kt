@@ -110,4 +110,43 @@ class VerticalSmusherTests {
             assertNull(smusher.trySmush(randomChar, randomChar, 0))
         }
     }
+
+    class HorizontalLine {
+        private val smusher = VerticalSmusher(VerticalSmusher.Rule.HorizontalLine)
+
+        @Test
+        fun `trySmush returns '=' when top is '-' and bottom is '_'`() {
+            val expected = '='.toInt()
+            val top = '-'.toInt()
+            val bottom = '_'.toInt()
+            val result =  smusher.trySmush(top, bottom, 0)
+
+            assertEquals(expected, result)
+        }
+
+        @Test
+        fun `trySmush returns '=' when top is '_' and bottom is '-'`() {
+            val expected = '='.toInt()
+            val top = '_'.toInt()
+            val bottom = '-'.toInt()
+            val result =  smusher.trySmush(top, bottom, 0)
+
+            assertEquals(expected, result)
+        }
+
+        @Test
+        fun `trySmush returns null when given any other combination of inputs`() {
+            val hyphen = '-'.toInt()
+            val underscore = '_'.toInt()
+            val notAline = '$'.toInt()
+
+            assertNull(smusher.trySmush(hyphen, hyphen, 0))
+            assertNull(smusher.trySmush(underscore, underscore, 0))
+            assertNull(smusher.trySmush(hyphen, notAline, 0))
+            assertNull(smusher.trySmush(underscore, notAline, 0))
+            assertNull(smusher.trySmush(notAline, hyphen, 0))
+            assertNull(smusher.trySmush(notAline, underscore, 0))
+            assertNull(smusher.trySmush(notAline, notAline, 0))
+        }
+    }
 }
