@@ -1,12 +1,10 @@
 package layout
 
-import java.util.*
-
 data class Layout(
     val horizontalLayout: HorizontalLayoutMode,
     val verticalLayout: VerticalLayoutMode,
     val horizontalSmusher: HorizontalSmusher,
-    private val verticalSmushingRules: EnumSet<VerticalSmushingRule>
+    val verticalSmusher: VerticalSmusher
 )
 
 enum class PrintDirection(
@@ -37,13 +35,13 @@ private fun parseLayoutMask(layoutMask: Int): Layout {
     val hLayout = parseHorizontalLayout(layoutMask)
     val vLayout = parseVerticalLayout(layoutMask)
     val horizontalSmusher = parseHorizontalSmushing(layoutMask)
-    val vSmushingRules = parseVerticalSmushingRules(layoutMask)
+    val verticalSmusher = parseVerticalSmushing(layoutMask)
 
     return Layout(
         horizontalLayout = hLayout,
         verticalLayout = vLayout,
         horizontalSmusher = horizontalSmusher,
-        verticalSmushingRules = vSmushingRules
+        verticalSmusher = verticalSmusher
     )
 }
 
@@ -66,16 +64,5 @@ private fun parseVerticalLayout(layoutMask: Int): VerticalLayoutMode {
         layoutMask and smushingMask == smushingMask -> VerticalLayoutMode.Smushing
         layoutMask and fittingMask == fittingMask -> VerticalLayoutMode.VerticalFitting
         else -> VerticalLayoutMode.FullHeight
-    }
-}
-
-private fun parseVerticalSmushingRules(layoutMask: Int): EnumSet<VerticalSmushingRule> {
-    val rules = VerticalSmushingRule.values()
-        .filter { layoutMask and it.bitMask == it.bitMask }
-
-    return if (rules.isEmpty()) {
-        EnumSet.noneOf(VerticalSmushingRule::class.java)
-    } else {
-        EnumSet.copyOf(rules)
     }
 }
