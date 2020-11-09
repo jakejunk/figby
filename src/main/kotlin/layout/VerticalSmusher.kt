@@ -3,19 +3,16 @@ package layout
 class VerticalSmusher(vararg rules: Rule) {
     private val ruleSet = rules.asSequence()
 
-    fun trySmush(top: Int, bottom: Int, hardblank: Int): Int? {
+    fun trySmush(top: Int, bottom: Int): Int? {
         return ruleSet
-            .map { rule -> rule.apply(top, bottom, hardblank) }
+            .map { rule -> rule.apply(top, bottom) }
             .firstOrNull { it != null }
     }
 
     enum class Rule(val bitMask: Int) {
         EqualCharacter(256) {
-            override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
-                return when {
-                    top == bottom && top != hardblank -> top
-                    else -> null
-                }
+            override fun apply(top: Int, bottom: Int): Int? {
+                return if (top == bottom) top else null
             }
         },
         Underscore(512) {
@@ -24,7 +21,7 @@ class VerticalSmusher(vararg rules: Rule) {
                 '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
             ).map(Char::toInt)
 
-            override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
+            override fun apply(top: Int, bottom: Int): Int? {
                 return when {
                     top == underscore && bottom in underscoreReplacers -> bottom
                     bottom == underscore && top in underscoreReplacers -> top
@@ -42,7 +39,7 @@ class VerticalSmusher(vararg rules: Rule) {
                 '<' to 6, '>' to 6,
             ).mapKeys { it.key.toInt() }
 
-            override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
+            override fun apply(top: Int, bottom: Int): Int? {
                 val topClass = charClassMap[top] ?: return null
                 val bottomClass = charClassMap[bottom] ?: return null
                 return when {
@@ -57,7 +54,7 @@ class VerticalSmusher(vararg rules: Rule) {
             private val underscore = '_'.toInt()
             private val equalSign = '='.toInt()
 
-            override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
+            override fun apply(top: Int, bottom: Int): Int? {
                 return when {
                     top == hyphen && bottom == underscore -> equalSign
                     top == underscore && bottom == hyphen -> equalSign
@@ -66,12 +63,17 @@ class VerticalSmusher(vararg rules: Rule) {
             }
         },
         VerticalLine(4096) {
-            override fun apply(top: Int, bottom: Int, hardblank: Int): Int? {
-                TODO("Not yet implemented")
+            private val verticalBar = '|'.toInt()
+
+            override fun apply(top: Int, bottom: Int): Int? {
+                return when {
+                    top == verticalBar && bottom == verticalBar -> verticalBar
+                    else -> null
+                }
             }
         };
 
-        abstract fun apply(top: Int, bottom: Int, hardblank: Int): Int?
+        abstract fun apply(top: Int, bottom: Int): Int?
     }
 }
 
