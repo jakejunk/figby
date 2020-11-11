@@ -19,15 +19,15 @@ class HorizontalSmusher(vararg rules: Rule) {
             }
         },
         Underscore(2) {
-            private val underscoreCodePoint = '_'.toInt()
+            private val underscore = '_'.toInt()
             private val underscoreReplacers = listOf(
                 '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
-            ).map { it.toInt() }
+            ).map(Char::toInt)
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
                 return when {
-                    left == underscoreCodePoint && right in underscoreReplacers -> right
-                    right == underscoreCodePoint && left in underscoreReplacers -> left
+                    left == underscore && right in underscoreReplacers -> right
+                    right == underscore && left in underscoreReplacers -> left
                     else -> null
                 }
             }
@@ -53,6 +53,7 @@ class HorizontalSmusher(vararg rules: Rule) {
             }
         },
         OppositePair(8) {
+            private val verticalBar = '|'.toInt()
             private val pairs = mapOf(
                 '[' to ']',
                 ']' to '[',
@@ -66,7 +67,7 @@ class HorizontalSmusher(vararg rules: Rule) {
 
             override fun apply(left: Int, right: Int, hardblank: Int): Int? {
                 return when (pairs[left]) {
-                    right -> '|'.toInt()
+                    right -> verticalBar
                     else -> null
                 }
             }
@@ -78,7 +79,6 @@ class HorizontalSmusher(vararg rules: Rule) {
                 Pair('>', '<') to 'X'
             ).entries.associate { (key, value) ->
                 val (left, right) = key
-
                 Pair(left.toInt(), right.toInt()) to value.toInt()
             }
 

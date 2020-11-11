@@ -1,5 +1,6 @@
 package layout
 
+import cartesianProduct
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -76,20 +77,6 @@ class HorizontalSmusherTests {
             '<' to 6, '>' to 6,
         ).mapKeys { it.key.toInt() }
 
-        private fun <T, U, V> cartesianProduct(
-            leftList: List<T>,
-            rightList: List<U>,
-            operation: (left: T, right: U) -> V?
-        ): Sequence<V> = sequence {
-            leftList.forEach { left ->
-                rightList.forEach { right ->
-                    operation(left, right)?.apply {
-                        yield(this)
-                    }
-                }
-            }
-        }
-
         @TestFactory
         fun `trySmush where left and right are part of a class`() = charClassMap.keys
             .toList()
@@ -114,7 +101,7 @@ class HorizontalSmusherTests {
             }.toList()
 
         @Test
-        fun `trySmush returns null if either input isn't part of a class`() {
+        fun `trySmush returns null if any input is not part of a class`() {
             val randomChar = 'j'.toInt()
             val classMember = '/'.toInt()
 
