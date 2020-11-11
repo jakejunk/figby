@@ -20,7 +20,6 @@ data class FigFontInfo(
      */
     val maxLength: Int,
     val layout: Layout,
-    val printDirection: PrintDirection
 )
 
 fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
@@ -34,15 +33,14 @@ fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
     val height = parseNumericParam(parts[1], "height")
     val baseline = parseNumericParam(parts[2], "baseline")
     val maxLength = parseNumericParam(parts[3], "max length")
+    val oldLayout = parseNumericParam(parts[4], "old layout")
     val commentLines = parseNumericParam(parts[5], "comment lines")
 
     // Optional values [6, 7]
-    val fullLayout = parts.getOrNull(7)
-    val (layout, printDirection) = if (fullLayout != null) {
-        val printDirection = parseNumericParam(parts[6], "print direction")
-        Pair(parseFullLayout(fullLayout), parsePrintDirection(printDirection))
-    } else {
-        Pair(parseOldLayout(parts[4]), PrintDirection.LeftToRight)
+    val printDirection = parts.getOrNull(6)?.toIntOrNull() ?: 0
+    val layout = when (val fullLayout = parts.getOrNull(7)?.toIntOrNull()) {
+        null -> parseOldLayout(oldLayout, printDirection)
+        else -> parseFullLayout(fullLayout, printDirection)
     }
 
     // There's also a "Codetag_Count" parameter, but it doesn't seem useful
@@ -52,8 +50,7 @@ fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
         height = height,
         baseline = baseline,
         maxLength = maxLength,
-        layout = layout,
-        printDirection = printDirection
+        layout = layout
     ), commentLines)
 }
 
