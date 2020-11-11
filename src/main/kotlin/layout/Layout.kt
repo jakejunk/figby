@@ -25,37 +25,15 @@ fun parseFullLayout(fullLayout: String): Layout {
 }
 
 private fun parseLayoutMask(layoutMask: Int): Layout {
-    val hLayout = parseHorizontalLayout(layoutMask)
-    val vLayout = parseVerticalLayout(layoutMask)
+    val hLayoutMode = parseHorizontalLayoutMode(layoutMask)
+    val vLayoutMode = parseVerticalLayoutMode(layoutMask)
     val horizontalSmusher = parseHorizontalSmushing(layoutMask)
     val verticalSmusher = parseVerticalSmushing(layoutMask)
 
     return Layout(
-        horizontalLayout = hLayout,
-        verticalLayout = vLayout,
+        horizontalLayout = hLayoutMode,
+        verticalLayout = vLayoutMode,
         horizontalSmusher = horizontalSmusher,
         verticalSmusher = verticalSmusher
     )
-}
-
-private fun parseHorizontalLayout(layoutMask: Int): HorizontalLayoutMode {
-    val smushingMask = HorizontalLayoutMode.Smushing.bitMask
-    val kerningMask = HorizontalLayoutMode.Kerning.bitMask
-
-    return when {
-        layoutMask and smushingMask == smushingMask -> HorizontalLayoutMode.Smushing
-        layoutMask and kerningMask == kerningMask -> HorizontalLayoutMode.Kerning
-        else -> HorizontalLayoutMode.FullWidth
-    }
-}
-
-private fun parseVerticalLayout(layoutMask: Int): VerticalLayoutMode {
-    val smushingMask = VerticalLayoutMode.Smushing.bitMask
-    val fittingMask = VerticalLayoutMode.VerticalFitting.bitMask
-
-    return when {
-        layoutMask and smushingMask == smushingMask -> VerticalLayoutMode.Smushing
-        layoutMask and fittingMask == fittingMask -> VerticalLayoutMode.VerticalFitting
-        else -> VerticalLayoutMode.FullHeight
-    }
 }
