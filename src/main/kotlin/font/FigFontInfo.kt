@@ -23,35 +23,38 @@ data class FigFontInfo(
 )
 
 fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
-    val parts = headerLine.split(" ")
-    if (parts.size < 6) {
+    val params = headerLine.split(" ")
+    if (params.size < 6) {
         throw Exception("Malformed header, TODO")
     }
 
     // Required values [0, 5]
-    val hardblank = parseSignature(parts[0])
-    val height = parseNumericParam(parts[1], "height")
-    val baseline = parseNumericParam(parts[2], "baseline")
-    val maxLength = parseNumericParam(parts[3], "max length")
-    val oldLayout = parseNumericParam(parts[4], "old layout")
-    val commentLines = parseNumericParam(parts[5], "comment lines")
+    val hardblank = parseSignature(params[0])
+    val height = parseNumericParam(params[1], "height")
+    val baseline = parseNumericParam(params[2], "baseline")
+    val maxLength = parseNumericParam(params[3], "max length")
+    val oldLayout = parseNumericParam(params[4], "old layout")
+    val commentLines = parseNumericParam(params[5], "comment lines")
 
     // Optional values [6, 7]
-    val printDirection = parts.getOrNull(6)?.toIntOrNull() ?: 0
-    val layout = when (val fullLayout = parts.getOrNull(7)?.toIntOrNull()) {
+    val printDirection = params.getOrNull(6)?.toIntOrNull() ?: 0
+    val layout = when (val fullLayout = params.getOrNull(7)?.toIntOrNull()) {
         null -> parseOldLayout(oldLayout, printDirection)
         else -> parseFullLayout(fullLayout, printDirection)
     }
 
     // There's also a "Codetag_Count" parameter, but it doesn't seem useful
 
-    return Pair(FigFontInfo(
-        hardblank = hardblank,
-        height = height,
-        baseline = baseline,
-        maxLength = maxLength,
-        layout = layout
-    ), commentLines)
+    return Pair(
+        FigFontInfo(
+            hardblank = hardblank,
+            height = height,
+            baseline = baseline,
+            maxLength = maxLength,
+            layout = layout
+        ),
+        commentLines
+    )
 }
 
 private fun parseSignature(signatureAndHardblank: String): Int {
