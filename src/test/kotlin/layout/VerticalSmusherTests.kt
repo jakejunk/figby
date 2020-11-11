@@ -220,4 +220,27 @@ class VerticalSmusherTests {
             assertNull(smusher.trySmush(notAVerticalBar, notAVerticalBar, 0))
         }
     }
+
+    class MultipleRules {
+        private val smusher = VerticalSmusher(
+            VerticalSmusher.Rule.EqualCharacter,
+            VerticalSmusher.Rule.Underscore,
+            VerticalSmusher.Rule.Hierarchy,
+            VerticalSmusher.Rule.HorizontalLine,
+            VerticalSmusher.Rule.VerticalLine
+        )
+
+        @Test
+        fun `trySmush returns values when given any set of rule-matching inputs`() {
+            val openParen = '('.toInt()
+            val verticalBar = '|'.toInt()
+            val underscore = '_'.toInt()
+
+            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0)) // Equal character
+            assertEquals(verticalBar, smusher.trySmush(underscore, verticalBar, 0))  // Underscore
+            assertEquals(openParen, smusher.trySmush(openParen, verticalBar, 0))     // Hierarchy
+            assertEquals('='.toInt(), smusher.trySmush(underscore, '-'.toInt(), 0))  // Horizontal line
+            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0)) // Vertical line
+        }
+    }
 }

@@ -1,6 +1,8 @@
 package layout
 
-class VerticalSmusher(vararg val rules: Rule) {
+class VerticalSmusher(
+    private vararg val rules: Rule
+) {
     fun trySmush(top: Int, bottom: Int, hardblank: Int): Int? {
         return when {
             rules.isNotEmpty() -> applyControlledSmushing(top, bottom)
