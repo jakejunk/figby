@@ -8,13 +8,75 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class VerticalSmusherTests {
+    /**
+     * Calculating universal smushing for the vertical axis follows these rules:
+     * 1. Hardblanks win over whitespace
+     * 2. Visible characters win over hardblanks and whitespace
+     * 3. Tiebreaker goes to the bottom character
+     *
+     * Occurs when no smushing rules are specified.
+     */
+    class Universal {
+        private val smusher = VerticalSmusher()
+
+        @Test
+        fun `trySmush returns hardblank when given hardblank and whitespace`() {
+            val hardblank = '$'.toInt()
+            val whitespace = ' '.toInt()
+
+            assertEquals(hardblank, smusher.trySmush(hardblank, whitespace, hardblank))
+            assertEquals(hardblank, smusher.trySmush(whitespace, hardblank, hardblank))
+        }
+
+        @Test
+        fun `trySmush returns visible character when given visible character and whitespace`() {
+            val visible = 'j'.toInt()
+            val whitespace = ' '.toInt()
+
+            assertEquals(visible, smusher.trySmush(visible, whitespace, 0))
+            assertEquals(visible, smusher.trySmush(whitespace, visible, 0))
+        }
+
+        @Test
+        fun `trySmush returns visible character when given visible character and hardblank`() {
+            val visible = 'j'.toInt()
+            val hardblank = '$'.toInt()
+
+            assertEquals(visible, smusher.trySmush(visible, hardblank, hardblank))
+            assertEquals(visible, smusher.trySmush(hardblank, visible, hardblank))
+        }
+
+        @Test
+        fun `trySmush returns bottom character when both inputs are whitespace`() {
+            val top = ' '.toInt()
+            val bottom = '\t'.toInt()
+
+            assertEquals(bottom, smusher.trySmush(top, bottom, 0))
+        }
+
+        @Test
+        fun `trySmush returns hardblank when both inputs are hardblanks`() {
+            val hardblank = '$'.toInt()
+
+            assertEquals(hardblank, smusher.trySmush(hardblank, hardblank, hardblank))
+        }
+
+        @Test
+        fun `trySmush returns bottom character when both inputs are visible characters`() {
+            val top = 'j'.toInt()
+            val bottom = 'k'.toInt()
+
+            assertEquals(bottom, smusher.trySmush(top, bottom, 0))
+        }
+    }
+
     class EqualCharacter {
         private val smusher = VerticalSmusher(VerticalSmusher.Rule.EqualCharacter)
 
         @Test
         fun `trySmush returns top character when top and bottom are equal`() {
             val expected = 'j'.toInt()
-            val result = smusher.trySmush(expected, expected)
+            val result = smusher.trySmush(expected, expected, 0)
 
             assertEquals(expected, result)
         }
@@ -23,7 +85,7 @@ class VerticalSmusherTests {
         fun `trySmush returns null when top and bottom are not equal`() {
             val top = 'j'.toInt()
             val bottom = 'k'.toInt()
-            val result = smusher.trySmush(top, bottom)
+            val result = smusher.trySmush(top, bottom, 0)
 
             assertNull(result)
         }
@@ -40,11 +102,9 @@ class VerticalSmusherTests {
             .map { input ->
                 DynamicTest.dynamicTest("'$input' can smush '_'") {
                     val underscore = '_'.toInt()
-                    val resultTop = smusher.trySmush(input, underscore)
-                    val resultBottom = smusher.trySmush(underscore, input)
 
-                    assertEquals(input, resultTop)
-                    assertEquals(input, resultBottom)
+                    assertEquals(input, smusher.trySmush(input, underscore, 0))
+                    assertEquals(input, smusher.trySmush(underscore, input, 0))
                 }
             }
 
@@ -52,9 +112,9 @@ class VerticalSmusherTests {
         fun `trySmush returns null for any other character combination`() {
             val underscore = '_'.toInt()
             val other = 'j'.toInt()
-            val result = smusher.trySmush(underscore, other)
 
-            assertNull(result)
+            assertNull(smusher.trySmush(other, underscore, 0))
+            assertNull(smusher.trySmush(underscore, other, 0))
         }
     }
 
@@ -76,7 +136,7 @@ class VerticalSmusherTests {
                 cartesianProduct(keys, keys) { top, bottom ->
                     val topClass = charClassMap[top]!!
                     val bottomClass = charClassMap[bottom]!!
-                    val result = smusher.trySmush(top, bottom)
+                    val result = smusher.trySmush(top, bottom, 0)
 
                     when {
                         topClass > bottomClass -> DynamicTest.dynamicTest("$top can smush $bottom") {
@@ -97,9 +157,9 @@ class VerticalSmusherTests {
             val randomChar = 'j'.toInt()
             val classMember = '/'.toInt()
 
-            assertNull(smusher.trySmush(randomChar, classMember))
-            assertNull(smusher.trySmush(classMember, randomChar))
-            assertNull(smusher.trySmush(randomChar, randomChar))
+            assertNull(smusher.trySmush(randomChar, classMember, 0))
+            assertNull(smusher.trySmush(classMember, randomChar, 0))
+            assertNull(smusher.trySmush(randomChar, randomChar, 0))
         }
     }
 
@@ -111,9 +171,8 @@ class VerticalSmusherTests {
             val expected = '='.toInt()
             val top = '-'.toInt()
             val bottom = '_'.toInt()
-            val result =  smusher.trySmush(top, bottom)
 
-            assertEquals(expected, result)
+            assertEquals(expected, smusher.trySmush(top, bottom, 0))
         }
 
         @Test
@@ -121,9 +180,8 @@ class VerticalSmusherTests {
             val expected = '='.toInt()
             val top = '_'.toInt()
             val bottom = '-'.toInt()
-            val result =  smusher.trySmush(top, bottom)
 
-            assertEquals(expected, result)
+            assertEquals(expected, smusher.trySmush(top, bottom, 0))
         }
 
         @Test
@@ -132,13 +190,13 @@ class VerticalSmusherTests {
             val underscore = '_'.toInt()
             val notAline = '$'.toInt()
 
-            assertNull(smusher.trySmush(hyphen, hyphen))
-            assertNull(smusher.trySmush(underscore, underscore))
-            assertNull(smusher.trySmush(hyphen, notAline))
-            assertNull(smusher.trySmush(underscore, notAline))
-            assertNull(smusher.trySmush(notAline, hyphen))
-            assertNull(smusher.trySmush(notAline, underscore))
-            assertNull(smusher.trySmush(notAline, notAline))
+            assertNull(smusher.trySmush(hyphen, hyphen, 0))
+            assertNull(smusher.trySmush(underscore, underscore, 0))
+            assertNull(smusher.trySmush(hyphen, notAline, 0))
+            assertNull(smusher.trySmush(underscore, notAline, 0))
+            assertNull(smusher.trySmush(notAline, hyphen, 0))
+            assertNull(smusher.trySmush(notAline, underscore, 0))
+            assertNull(smusher.trySmush(notAline, notAline, 0))
         }
     }
 
@@ -148,9 +206,8 @@ class VerticalSmusherTests {
         @Test
         fun `trySmush returns vertical bar when top and bottom are also vertical bars`() {
             val verticalBar = '|'.toInt()
-            val result =  smusher.trySmush(verticalBar, verticalBar)
 
-            assertEquals(verticalBar, result)
+            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0))
         }
 
         @Test
@@ -158,11 +215,9 @@ class VerticalSmusherTests {
             val verticalBar = '|'.toInt()
             val notAVerticalBar = '$'.toInt()
 
-            assertNull(smusher.trySmush(verticalBar, notAVerticalBar))
-            assertNull(smusher.trySmush(notAVerticalBar, verticalBar))
-            assertNull(smusher.trySmush(notAVerticalBar, notAVerticalBar))
+            assertNull(smusher.trySmush(verticalBar, notAVerticalBar, 0))
+            assertNull(smusher.trySmush(notAVerticalBar, verticalBar, 0))
+            assertNull(smusher.trySmush(notAVerticalBar, notAVerticalBar, 0))
         }
     }
-
-    // TODO: Don't forget about universal smushing
 }

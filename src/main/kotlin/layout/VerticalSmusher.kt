@@ -1,12 +1,27 @@
 package layout
 
-class VerticalSmusher(vararg rules: Rule) {
-    private val ruleSet = rules.asSequence()
+class VerticalSmusher(vararg val rules: Rule) {
+    fun trySmush(top: Int, bottom: Int, hardblank: Int): Int? {
+        return when {
+            rules.isNotEmpty() -> applyControlledSmushing(top, bottom)
+            else -> applyUniversalSmushing(top, bottom, hardblank)
+        }
+    }
 
-    fun trySmush(top: Int, bottom: Int): Int? {
-        return ruleSet
+    private fun applyControlledSmushing(top: Int, bottom: Int): Int? {
+        return rules
+            .asSequence()
             .map { rule -> rule.apply(top, bottom) }
             .firstOrNull { it != null }
+    }
+
+    private fun applyUniversalSmushing(top: Int, bottom: Int, hardblank: Int): Int {
+        return when {
+            Character.isWhitespace(top) -> bottom
+            Character.isWhitespace(bottom) -> top
+            bottom == hardblank -> top
+            else -> bottom
+        }
     }
 
     enum class Rule(val bitMask: Int) {
