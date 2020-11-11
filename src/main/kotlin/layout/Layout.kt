@@ -7,13 +7,6 @@ data class Layout(
     val verticalSmusher: VerticalSmusher
 )
 
-enum class PrintDirection(
-    val value: Int
-) {
-    LeftToRight(0),
-    RightToLeft(1)
-}
-
 fun parseOldLayout(oldLayout: String): Layout {
     val layout = oldLayout.toIntOrNull() ?: throw Exception("Could not parse old layout")
     val fullLayout = when {

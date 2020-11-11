@@ -1,9 +1,6 @@
 package font
 
-import layout.Layout
-import layout.PrintDirection
-import layout.parseFullLayout
-import layout.parseOldLayout
+import layout.*
 
 data class FigFontInfo(
     /**
@@ -42,7 +39,8 @@ fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
     // Optional values [6, 7]
     val fullLayout = parts.getOrNull(7)
     val (layout, printDirection) = if (fullLayout != null) {
-        Pair(parseFullLayout(fullLayout), parsePrintDirection(parts[6]))
+        val printDirection = parseNumericParam(parts[6], "print direction")
+        Pair(parseFullLayout(fullLayout), parsePrintDirection(printDirection))
     } else {
         Pair(parseOldLayout(parts[4]), PrintDirection.LeftToRight)
     }
@@ -72,12 +70,4 @@ private fun parseSignature(signatureAndHardblank: String): Int {
 
 private fun parseNumericParam(param: String, paramName: String): Int {
     return param.toIntOrNull() ?: throw Exception("Could not parse $paramName")
-}
-
-private fun parsePrintDirection(printDirectionParam: String): PrintDirection {
-    return when (printDirectionParam) {
-        "0" -> PrintDirection.LeftToRight
-        "1" -> PrintDirection.RightToLeft
-        else -> throw Exception("Print direction was not a numeric value")
-    }
 }
