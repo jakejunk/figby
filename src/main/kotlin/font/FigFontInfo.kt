@@ -1,9 +1,6 @@
 package font
 
-import layout.Layout
-import layout.PrintDirection
-import layout.parseFullLayout
-import layout.parseOldLayout
+import layout.*
 
 data class FigFontInfo(
     /**
@@ -23,40 +20,41 @@ data class FigFontInfo(
      */
     val maxLength: Int,
     val layout: Layout,
-    val printDirection: PrintDirection
 )
 
 fun parseFigFontHeader(headerLine: String): Pair<FigFontInfo, Int> {
-    val parts = headerLine.split(" ")
-    if (parts.size < 6) {
+    val params = headerLine.split(" ")
+    if (params.size < 6) {
         throw Exception("Malformed header, TODO")
     }
 
     // Required values [0, 5]
-    val hardblank = parseSignature(parts[0])
-    val height = parseNumericParam(parts[1], "height")
-    val baseline = parseNumericParam(parts[2], "baseline")
-    val maxLength = parseNumericParam(parts[3], "max length")
-    val commentLines = parseNumericParam(parts[5], "comment lines")
+    val hardblank = parseSignature(params[0])
+    val height = parseNumericParam(params[1], "height")
+    val baseline = parseNumericParam(params[2], "baseline")
+    val maxLength = parseNumericParam(params[3], "max length")
+    val oldLayout = parseNumericParam(params[4], "old layout")
+    val commentLines = parseNumericParam(params[5], "comment lines")
 
     // Optional values [6, 7]
-    val fullLayout = parts.getOrNull(7)
-    val (layout, printDirection) = if (fullLayout != null) {
-        Pair(parseFullLayout(fullLayout), parsePrintDirection(parts[6]))
-    } else {
-        Pair(parseOldLayout(parts[4]), PrintDirection.LeftToRight)
+    val printDirection = params.getOrNull(6)?.toIntOrNull() ?: 0
+    val layout = when (val fullLayout = params.getOrNull(7)?.toIntOrNull()) {
+        null -> parseOldLayout(oldLayout, printDirection)
+        else -> parseFullLayout(fullLayout, printDirection)
     }
 
     // There's also a "Codetag_Count" parameter, but it doesn't seem useful
 
-    return Pair(FigFontInfo(
-        hardblank = hardblank,
-        height = height,
-        baseline = baseline,
-        maxLength = maxLength,
-        layout = layout,
-        printDirection = printDirection
-    ), commentLines)
+    return Pair(
+        FigFontInfo(
+            hardblank = hardblank,
+            height = height,
+            baseline = baseline,
+            maxLength = maxLength,
+            layout = layout
+        ),
+        commentLines
+    )
 }
 
 private fun parseSignature(signatureAndHardblank: String): Int {
@@ -72,12 +70,4 @@ private fun parseSignature(signatureAndHardblank: String): Int {
 
 private fun parseNumericParam(param: String, paramName: String): Int {
     return param.toIntOrNull() ?: throw Exception("Could not parse $paramName")
-}
-
-private fun parsePrintDirection(printDirectionParam: String): PrintDirection {
-    return when (printDirectionParam) {
-        "0" -> PrintDirection.LeftToRight
-        "1" -> PrintDirection.RightToLeft
-        else -> throw Exception("Print direction was not a numeric value")
-    }
 }

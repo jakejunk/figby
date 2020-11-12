@@ -4,65 +4,32 @@ data class Layout(
     val horizontalLayout: HorizontalLayoutMode,
     val verticalLayout: VerticalLayoutMode,
     val horizontalSmusher: HorizontalSmusher,
-    val verticalSmusher: VerticalSmusher
+    val verticalSmusher: VerticalSmusher,
+    val printDirection: PrintDirection
 )
 
-enum class PrintDirection(
-    val value: Int
-) {
-    LeftToRight(0),
-    RightToLeft(1)
-}
-
-fun parseOldLayout(oldLayout: String): Layout {
-    val layout = oldLayout.toIntOrNull() ?: throw Exception("Could not parse old layout")
+fun parseOldLayout(oldLayout: Int, printDirection: Int = 0): Layout {
     val fullLayout = when {
-        layout < 0 -> 0
-        layout > 0 -> layout + 128
+        oldLayout < 0 -> 0
+        oldLayout > 0 -> oldLayout + 128
         else -> 64
     }
 
-    return parseLayoutMask(fullLayout)
+    return parseFullLayout(fullLayout, printDirection)
 }
 
-fun parseFullLayout(fullLayout: String): Layout {
-    val layout = fullLayout.toIntOrNull() ?: throw Exception("Could not parse full layout")
-
-    return parseLayoutMask(layout)
-}
-
-private fun parseLayoutMask(layoutMask: Int): Layout {
-    val hLayout = parseHorizontalLayout(layoutMask)
-    val vLayout = parseVerticalLayout(layoutMask)
-    val horizontalSmusher = parseHorizontalSmushing(layoutMask)
-    val verticalSmusher = parseVerticalSmushing(layoutMask)
+fun parseFullLayout(fullLayout: Int, printDirection: Int = 0): Layout {
+    val hLayoutMode = parseHorizontalLayoutMode(fullLayout)
+    val vLayoutMode = parseVerticalLayoutMode(fullLayout)
+    val horizontalSmusher = parseHorizontalSmushing(fullLayout)
+    val verticalSmusher = parseVerticalSmushing(fullLayout)
+    val printDir = parsePrintDirection(printDirection)
 
     return Layout(
-        horizontalLayout = hLayout,
-        verticalLayout = vLayout,
+        horizontalLayout = hLayoutMode,
+        verticalLayout = vLayoutMode,
         horizontalSmusher = horizontalSmusher,
-        verticalSmusher = verticalSmusher
+        verticalSmusher = verticalSmusher,
+        printDirection = printDir
     )
-}
-
-private fun parseHorizontalLayout(layoutMask: Int): HorizontalLayoutMode {
-    val smushingMask = HorizontalLayoutMode.Smushing.bitMask
-    val kerningMask = HorizontalLayoutMode.Kerning.bitMask
-
-    return when {
-        layoutMask and smushingMask == smushingMask -> HorizontalLayoutMode.Smushing
-        layoutMask and kerningMask == kerningMask -> HorizontalLayoutMode.Kerning
-        else -> HorizontalLayoutMode.FullWidth
-    }
-}
-
-private fun parseVerticalLayout(layoutMask: Int): VerticalLayoutMode {
-    val smushingMask = VerticalLayoutMode.Smushing.bitMask
-    val fittingMask = VerticalLayoutMode.VerticalFitting.bitMask
-
-    return when {
-        layoutMask and smushingMask == smushingMask -> VerticalLayoutMode.Smushing
-        layoutMask and fittingMask == fittingMask -> VerticalLayoutMode.VerticalFitting
-        else -> VerticalLayoutMode.FullHeight
-    }
 }
