@@ -7,10 +7,10 @@ import layout.HorizontalLayoutMode
 class FigureBuilder(
     private val font: FigFont
 ) {
-    private val lines = Array(font.info.height) { FigureLineBuilder() }
+    private val lines = Array(font.height) { FigureLineBuilder() }
 
     fun append(text: String) {
-        val horizontalLayout = font.info.layout.horizontalLayout
+        val horizontalLayout = font.layout.horizontalLayout
         val codePoints = text.codePoints()
 
         when (horizontalLayout) {
@@ -69,8 +69,8 @@ class FigureBuilder(
     }
 
     private fun getSmushingAdjustment(linesToAppend: List<FigCharLine>): Pair<Int, List<Int?>> {
-        val hardblank = font.info.hardblank
-        val horizontalSmushing = font.info.layout.horizontalSmusher
+        val hardblank = font.hardblank
+        val horizontalSmushing = font.layout.horizontalSmusher
         val adjustments = lines
             .mapIndexed { i, line ->
                 line.getSmushingAdjustment(linesToAppend[i], hardblank, horizontalSmushing)
@@ -88,7 +88,7 @@ class FigureBuilder(
     }
 
     fun buildFigure(): String {
-        val hardblank = font.info.hardblank
+        val hardblank = font.hardblank
 
         return lines
             .fold(StringBuilder()) { builder, next -> builder.append(next.toString(hardblank)) }
