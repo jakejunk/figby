@@ -13,8 +13,8 @@ class VerticalSmusher(
     private fun applyControlledSmushing(top: Int, bottom: Int): Int? {
         return rules
             .asSequence()
-            .map { rule -> rule.apply(top, bottom) }
-            .firstOrNull { it != null }
+            .mapNotNull { rule -> rule.apply(top, bottom) }
+            .firstOrNull()
     }
 
     private fun applyUniversalSmushing(top: Int, bottom: Int, hardblank: Int): Int {

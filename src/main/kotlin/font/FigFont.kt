@@ -24,7 +24,16 @@ data class FigFont internal constructor(
      * Greater than or equal to the width of the widest [FigChar], plus 2.
      */
     val maxLength: Int,
+    /**
+     * Includes all details on how this font should be displayed.
+     * @see [Layout]
+     */
     val layout: Layout,
+    /**
+     * The comments included as part of this font, which may include
+     * anything from the font name to the author's contact info.
+     */
+    val comments: String,
     private val chars: Map<Int, FigChar>
 ) {
     operator fun get(charCode: Int): FigChar? {
@@ -32,9 +41,8 @@ data class FigFont internal constructor(
     }
 }
 
-fun parseFigFont(fontFile: InputStream): FigFont = parseFigFont(fontFile.bufferedReader())
-
-fun parseFigFont(reader: BufferedReader): FigFont {
+fun parseFigFont(fontFile: InputStream): FigFont {
+    val reader = fontFile.bufferedReader()
     val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
     val params = headerLine.split(" ")
     if (params.size < 6) {
@@ -58,7 +66,7 @@ fun parseFigFont(reader: BufferedReader): FigFont {
 
     // There's also a "Codetag_Count" parameter, but it doesn't seem useful
 
-    skipComments(commentLines, reader)
+    val comments = readComments(commentLines, reader)
     val chars = parseChars(reader, height)
 
     return FigFont(
@@ -67,6 +75,7 @@ fun parseFigFont(reader: BufferedReader): FigFont {
         baseline = baseline,
         maxLength = maxLength,
         layout = layout,
+        comments = comments,
         chars = chars
     )
 }
@@ -86,11 +95,18 @@ private fun parseNumericParam(param: String, paramName: String): Int {
     return param.toIntOrNull() ?: throw Exception("Could not parse $paramName")
 }
 
-private fun skipComments(numLines: Int, reader: BufferedReader) {
+private fun readComments(numLines: Int, reader: BufferedReader): String {
+    val builder = StringBuilder()
+
     repeat(numLines) {
-        reader.readLine()
+        val line = reader.readLine()
             ?: throw Exception("Expected $numLines lines of comments, only received $it")
+
+        builder.append(line)
+        builder.append('\n')
     }
+
+    return builder.toString()
 }
 
 private fun parseChars(src: BufferedReader, height: Int): Map<Int, FigChar> {

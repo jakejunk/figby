@@ -13,8 +13,8 @@ class HorizontalSmusher(
     private fun applyControlledSmushing(left: Int, right: Int, hardblank: Int): Int? {
         return rules
             .asSequence()
-            .map { rule -> rule.apply(left, right, hardblank) }
-            .firstOrNull { it != null }
+            .mapNotNull { rule -> rule.apply(left, right, hardblank) }
+            .firstOrNull()
     }
 
     private fun applyUniversalSmushing(left: Int, right: Int, hardblank: Int): Int {
