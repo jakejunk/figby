@@ -1,5 +1,9 @@
 package font
 
+import font.internal.*
+import font.internal.parseFigFontHeader
+import font.internal.parseFullLayout
+import font.internal.parseOldLayout
 import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.streams.toList
@@ -22,74 +26,66 @@ data class FigFont internal constructor(
      */
     val maxLength: Int,
     /**
-     * Includes all details on how this font should be displayed.
-     * @see [Layout]
+     * Defines the layout mode for the horizontal axis,
+     * which specifies how much spacing to place between [FigChar]s.
      */
-    val layout: Layout,
+    val horizontalLayout: HorizontalLayoutMode,
+    /**
+     * Defines the layout mode for the vertical axis,
+     * which specifies how much spacing to place between [FigChar]s.
+     */
+    val verticalLayout: VerticalLayoutMode,
+    /**
+     * Specifies whether this font should be printed left-to-right or right-to-left.
+     */
+    val printDirection: PrintDirection,
     /**
      * The comments included as part of this font, which may include
      * anything from the font name to the author's contact info.
      */
     val comments: String,
+    private val figFontSmusher: FigFontSmusher,
     private val chars: Map<Int, FigChar>
 ) {
     operator fun get(charCode: Int): FigChar? {
         return chars[charCode] ?: chars[0]
     }
+
+    fun tryHorizontalSmush(left: Int, right: Int): Int? {
+        return figFontSmusher.tryHorizontalSmush(left, right, hardblank)
+    }
+
+    fun tryVerticalSmush(top: Int, bottom: Int): Int? {
+        return figFontSmusher.tryVerticalSmush(top, bottom, hardblank)
+    }
 }
 
 fun parseFigFont(fontFile: InputStream): FigFont {
     val reader = fontFile.bufferedReader()
+
     val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
-    val params = headerLine.split(" ")
-    if (params.size < 6) {
-        throw Exception("Malformed header, TODO")
+    val header = parseFigFontHeader(headerLine)
+    val printDirection = parsePrintDirection(header.printDirection)
+    val layout = when (header.fullLayout) {
+        null -> parseOldLayout(header.oldLayout)
+        else -> parseFullLayout(header.fullLayout)
     }
 
-    // Required values [0, 5]
-    val hardblank = parseSignature(params[0])
-    val height = parseNumericParam(params[1], "height")
-    val baseline = parseNumericParam(params[2], "baseline")
-    val maxLength = parseNumericParam(params[3], "max length")
-    val oldLayout = parseNumericParam(params[4], "old layout")
-    val commentLines = parseNumericParam(params[5], "comment lines")
-
-    // Optional values [6, 7]
-    val printDirection = params.getOrNull(6)?.toIntOrNull() ?: 0
-    val layout = when (val fullLayout = params.getOrNull(7)?.toIntOrNull()) {
-        null -> parseOldLayout(oldLayout, printDirection)
-        else -> parseFullLayout(fullLayout, printDirection)
-    }
-
-    // There's also a "Codetag_Count" parameter, but it doesn't seem useful
-
-    val comments = readComments(commentLines, reader)
-    val chars = parseChars(reader, height)
+    val comments = readComments(header.commentLines, reader)
+    val chars = parseChars(reader, header.height)
 
     return FigFont(
-        hardblank = hardblank,
-        height = height,
-        baseline = baseline,
-        maxLength = maxLength,
-        layout = layout,
+        hardblank = header.hardblank,
+        height = header.height,
+        baseline = header.baseline,
+        maxLength = header.maxLength,
+        horizontalLayout = layout.horizontalLayout,
+        verticalLayout = layout.verticalLayout,
+        printDirection = printDirection,
         comments = comments,
+        figFontSmusher = layout.figFontSmusher,
         chars = chars
     )
-}
-
-private fun parseSignature(signatureAndHardblank: String): Int {
-    val signature = "flf2a"
-    val signatureParts = signatureAndHardblank.split(signature)
-
-    if (signatureParts.size != 2 || signatureParts[0] != "") {
-        throw Exception("Malformed signature")
-    }
-
-    return signatureParts[1].codePointAt(0)
-}
-
-private fun parseNumericParam(param: String, paramName: String): Int {
-    return param.toIntOrNull() ?: throw Exception("Could not parse $paramName")
 }
 
 private fun readComments(numLines: Int, reader: BufferedReader): String {
@@ -100,7 +96,7 @@ private fun readComments(numLines: Int, reader: BufferedReader): String {
             ?: throw Exception("Expected $numLines lines of comments, only received $it")
 
         builder.append(line)
-        builder.append('\n')
+        builder.append(System.lineSeparator())
     }
 
     return builder.toString()

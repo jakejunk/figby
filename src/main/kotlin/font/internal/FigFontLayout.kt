@@ -1,32 +1,31 @@
-package font
+package font.internal
 
-data class Layout(
+import font.*
+
+internal class FigFontLayout(
     val horizontalLayout: HorizontalLayoutMode,
     val verticalLayout: VerticalLayoutMode,
-    val smusher: Smusher,
-    val printDirection: PrintDirection
+    val figFontSmusher: FigFontSmusher
 )
 
-fun parseOldLayout(oldLayout: Int, printDirection: Int = 0): Layout {
+internal fun parseOldLayout(oldLayout: Int): FigFontLayout {
     val fullLayout = when {
         oldLayout < 0 -> 0
         oldLayout > 0 -> oldLayout + 128
         else -> 64
     }
 
-    return parseFullLayout(fullLayout, printDirection)
+    return parseFullLayout(fullLayout)
 }
 
-fun parseFullLayout(fullLayout: Int, printDirection: Int = 0): Layout {
+internal fun parseFullLayout(fullLayout: Int): FigFontLayout {
     val hLayoutMode = parseHorizontalLayoutMode(fullLayout)
     val vLayoutMode = parseVerticalLayoutMode(fullLayout)
     val smusher = parseSmushingRules(fullLayout)
-    val printDir = parsePrintDirection(printDirection)
 
-    return Layout(
+    return FigFontLayout(
         horizontalLayout = hLayoutMode,
         verticalLayout = vLayoutMode,
-        smusher = smusher,
-        printDirection = printDir
+        figFontSmusher = smusher
     )
 }

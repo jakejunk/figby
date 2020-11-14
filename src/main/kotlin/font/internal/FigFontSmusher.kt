@@ -1,8 +1,11 @@
-package font
+package font.internal
 
-class Smusher(
-    private val horizontalRules: List<HorizontalSmushingRule> = emptyList(),
-    private val verticalRules: List<VerticalSmushingRule> = emptyList()
+import font.HorizontalSmushingRule
+import font.VerticalSmushingRule
+
+internal class FigFontSmusher(
+    val horizontalRules: List<HorizontalSmushingRule> = emptyList(),
+    val verticalRules: List<VerticalSmushingRule> = emptyList()
 ) {
     fun tryHorizontalSmush(left: Int, right: Int, hardblank: Int): Int? = when {
         horizontalRules.isNotEmpty() -> applyHorizontalSmushing(left, right, hardblank)
@@ -36,14 +39,14 @@ class Smusher(
     }
 }
 
-fun parseSmushingRules(layoutMask: Int): Smusher {
+internal fun parseSmushingRules(layoutMask: Int): FigFontSmusher {
     val horizontalRules = HorizontalSmushingRule.values()
         .filter { layoutMask and it.bitMask == it.bitMask }
 
     val verticalRules = VerticalSmushingRule.values()
         .filter { layoutMask and it.bitMask == it.bitMask }
 
-    return Smusher(
+    return FigFontSmusher(
         horizontalRules = horizontalRules,
         verticalRules = verticalRules
     )

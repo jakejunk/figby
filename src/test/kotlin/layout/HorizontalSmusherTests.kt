@@ -2,7 +2,7 @@ package layout
 
 import cartesianProduct
 import font.HorizontalSmushingRule
-import font.Smusher
+import font.internal.FigFontSmusher
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -19,7 +19,7 @@ class HorizontalSmusherTests {
      * Occurs when no smushing rules are specified.
      */
     class Universal {
-        private val smusher = Smusher()
+        private val smusher = FigFontSmusher()
 
         @Test
         fun `trySmush returns hardblank when given hardblank and whitespace`() {
@@ -73,7 +73,7 @@ class HorizontalSmusherTests {
     }
 
     class EqualCharacter {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.EqualCharacter))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.EqualCharacter))
 
         @Test
         fun `trySmush returns left character when left and right are equal`() {
@@ -102,7 +102,7 @@ class HorizontalSmusherTests {
     }
 
     class Underscore {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Underscore))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Underscore))
         private val underscoreReplacers = listOf(
             '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
         ).map { it.toInt() }
@@ -131,7 +131,7 @@ class HorizontalSmusherTests {
     }
 
     class Hierarchy {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Hierarchy))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Hierarchy))
         private val charClassMap = mapOf(
             '|' to 1,
             '/' to 2, '\\' to 2,
@@ -176,7 +176,7 @@ class HorizontalSmusherTests {
     }
 
     class OppositePair {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.OppositePair))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.OppositePair))
         private val pairs = mapOf(
             '[' to ']',
             ']' to '[',
@@ -211,7 +211,7 @@ class HorizontalSmusherTests {
     }
 
     class BigX {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.BigX))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.BigX))
 
         @Test
         fun `trySmush returns vertical bar when left is forward slash and right is backslash`() {
@@ -254,7 +254,7 @@ class HorizontalSmusherTests {
     }
 
     class Hardblank {
-        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Hardblank))
+        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Hardblank))
 
         @Test
         fun `trySmush returns hardblank when all inputs are hardblanks`() {
@@ -276,7 +276,7 @@ class HorizontalSmusherTests {
     }
 
     class MultipleRules {
-        private val smusher = Smusher(
+        private val smusher = FigFontSmusher(
             horizontalRules = listOf(
                 HorizontalSmushingRule.EqualCharacter,
                 HorizontalSmushingRule.Underscore,

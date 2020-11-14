@@ -1,7 +1,7 @@
 package layout
 
 import cartesianProduct
-import font.Smusher
+import font.internal.FigFontSmusher
 import font.VerticalSmushingRule
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ class VerticalSmusherTests {
      * Occurs when no smushing rules are specified.
      */
     class Universal {
-        private val smusher = Smusher()
+        private val smusher = FigFontSmusher()
 
         @Test
         fun `trySmush returns hardblank when given hardblank and whitespace`() {
@@ -73,7 +73,7 @@ class VerticalSmusherTests {
     }
 
     class EqualCharacter {
-        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.EqualCharacter))
+        private val smusher = FigFontSmusher(verticalRules = listOf(VerticalSmushingRule.EqualCharacter))
 
         @Test
         fun `trySmush returns top character when top and bottom are equal`() {
@@ -94,7 +94,7 @@ class VerticalSmusherTests {
     }
 
     class Underscore {
-        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.Underscore))
+        private val smusher = FigFontSmusher(verticalRules = listOf(VerticalSmushingRule.Underscore))
         private val underscoreReplacers = listOf(
             '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
         ).map { it.toInt() }
@@ -121,7 +121,7 @@ class VerticalSmusherTests {
     }
 
     class Hierarchy {
-        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.Hierarchy))
+        private val smusher = FigFontSmusher(verticalRules = listOf(VerticalSmushingRule.Hierarchy))
         private val charClassMap = mapOf(
             '|' to 1,
             '/' to 2, '\\' to 2,
@@ -166,7 +166,7 @@ class VerticalSmusherTests {
     }
 
     class HorizontalLine {
-        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.HorizontalLine))
+        private val smusher = FigFontSmusher(verticalRules = listOf(VerticalSmushingRule.HorizontalLine))
 
         @Test
         fun `trySmush returns '=' when top is '-' and bottom is '_'`() {
@@ -203,7 +203,7 @@ class VerticalSmusherTests {
     }
 
     class VerticalLine {
-        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.VerticalLine))
+        private val smusher = FigFontSmusher(verticalRules = listOf(VerticalSmushingRule.VerticalLine))
 
         @Test
         fun `trySmush returns vertical bar when top and bottom are also vertical bars`() {
@@ -224,7 +224,7 @@ class VerticalSmusherTests {
     }
 
     class MultipleRules {
-        private val smusher = Smusher(
+        private val smusher = FigFontSmusher(
             verticalRules =
             listOf(
                 VerticalSmushingRule.EqualCharacter,

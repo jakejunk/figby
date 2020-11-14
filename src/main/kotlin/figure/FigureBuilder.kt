@@ -3,7 +3,6 @@ package figure
 import font.FigCharLine
 import font.FigFont
 import font.HorizontalLayoutMode
-import font.Smusher
 import util.toInt
 
 class FigureBuilder(
@@ -12,7 +11,7 @@ class FigureBuilder(
     private val lines = Array(font.height) { FigureLineBuilder() }
 
     fun append(text: String) {
-        val horizontalLayout = font.layout.horizontalLayout
+        val horizontalLayout = font.horizontalLayout
         val codePoints = text.codePoints()
 
         when (horizontalLayout) {
@@ -71,11 +70,9 @@ class FigureBuilder(
     }
 
     private fun getSmushingAdjustment(linesToAppend: List<FigCharLine>): Pair<Int, List<Int?>> {
-        val hardblank = font.hardblank
-        val horizontalSmushing = font.layout.smusher
         val adjustments = lines
             .mapIndexed { i, line ->
-                line.getSmushingAdjustment(linesToAppend[i], hardblank, horizontalSmushing)
+                line.getSmushingAdjustment(linesToAppend[i], font)
             }
 
         val smallestAdjustment = adjustments
@@ -107,19 +104,19 @@ private class FigureLineBuilder {
         return trailingSpaces + figCharLine.leadingSpaces
     }
 
-    fun getSmushingAdjustment(figCharLine: FigCharLine, hardBlank: Int, smusher: Smusher): Pair<Int, Int?> {
+    fun getSmushingAdjustment(figCharLine: FigCharLine, font: FigFont): Pair<Int, Int?> {
         val kerningAdjustment = getKerningAdjustment(figCharLine)
-        val smushedSubChar = getSmushedSubCharacter(figCharLine, hardBlank, smusher)
+        val smushedSubChar = getSmushedSubCharacter(figCharLine, font)
         val smushAdjustment = (smushedSubChar != null).toInt()
 
         return Pair(kerningAdjustment + smushAdjustment, smushedSubChar)
     }
 
-    private fun getSmushedSubCharacter(figCharLine: FigCharLine, hardBlank: Int, smusher: Smusher): Int? {
+    private fun getSmushedSubCharacter(figCharLine: FigCharLine, font: FigFont): Int? {
         val left = subChars.lastOrNull() ?: return null
         val right = figCharLine.trimmedCodePoints.firstOrNull() ?: return null
 
-        return smusher.tryHorizontalSmush(left, right, hardBlank)
+        return font.tryHorizontalSmush(left, right)
     }
 
     fun append(line: FigCharLine, overlap: Int = 0) {
