@@ -1,7 +1,7 @@
 package figure
 
 import font.FigCharLine
-import layout.HorizontalSmusher
+import layout.Smusher
 import util.toInt
 
 class FigureLineBuilder {
@@ -13,19 +13,19 @@ class FigureLineBuilder {
         return trailingSpaces + figCharLine.leadingSpaces
     }
 
-    fun getSmushingAdjustment(figCharLine: FigCharLine, hardBlank: Int, horizontalSmusher: HorizontalSmusher): Pair<Int, Int?> {
+    fun getSmushingAdjustment(figCharLine: FigCharLine, hardBlank: Int, smusher: Smusher): Pair<Int, Int?> {
         val kerningAdjustment = getKerningAdjustment(figCharLine)
-        val smushedSubChar = getSmushedSubCharacter(figCharLine, hardBlank, horizontalSmusher)
+        val smushedSubChar = getSmushedSubCharacter(figCharLine, hardBlank, smusher)
         val smushAdjustment = (smushedSubChar != null).toInt()
 
         return Pair(kerningAdjustment + smushAdjustment, smushedSubChar)
     }
 
-    private fun getSmushedSubCharacter(figCharLine: FigCharLine, hardBlank: Int, horizontalSmusher: HorizontalSmusher): Int? {
+    private fun getSmushedSubCharacter(figCharLine: FigCharLine, hardBlank: Int, smusher: Smusher): Int? {
         val left = subChars.lastOrNull() ?: return null
         val right = figCharLine.trimmedCodePoints.firstOrNull() ?: return null
 
-        return horizontalSmusher.trySmush(left, right, hardBlank)
+        return smusher.tryHorizontalSmush(left, right, hardBlank)
     }
 
     fun append(line: FigCharLine, overlap: Int = 0) {

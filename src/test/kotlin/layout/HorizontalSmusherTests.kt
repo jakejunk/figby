@@ -17,15 +17,15 @@ class HorizontalSmusherTests {
      * Occurs when no smushing rules are specified.
      */
     class Universal {
-        private val smusher = HorizontalSmusher()
+        private val smusher = Smusher()
 
         @Test
         fun `trySmush returns hardblank when given hardblank and whitespace`() {
             val hardblank = '$'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(hardblank, smusher.trySmush(hardblank, whitespace, hardblank))
-            assertEquals(hardblank, smusher.trySmush(whitespace, hardblank, hardblank))
+            assertEquals(hardblank, smusher.tryHorizontalSmush(hardblank, whitespace, hardblank))
+            assertEquals(hardblank, smusher.tryHorizontalSmush(whitespace, hardblank, hardblank))
         }
 
         @Test
@@ -33,8 +33,8 @@ class HorizontalSmusherTests {
             val visible = 'j'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(visible, smusher.trySmush(visible, whitespace, 0))
-            assertEquals(visible, smusher.trySmush(whitespace, visible, 0))
+            assertEquals(visible, smusher.tryHorizontalSmush(visible, whitespace, 0))
+            assertEquals(visible, smusher.tryHorizontalSmush(whitespace, visible, 0))
         }
 
         @Test
@@ -42,8 +42,8 @@ class HorizontalSmusherTests {
             val visible = 'j'.toInt()
             val hardblank = '$'.toInt()
 
-            assertEquals(visible, smusher.trySmush(visible, hardblank, hardblank))
-            assertEquals(visible, smusher.trySmush(hardblank, visible, hardblank))
+            assertEquals(visible, smusher.tryHorizontalSmush(visible, hardblank, hardblank))
+            assertEquals(visible, smusher.tryHorizontalSmush(hardblank, visible, hardblank))
         }
 
         @Test
@@ -51,14 +51,14 @@ class HorizontalSmusherTests {
             val left = ' '.toInt()
             val right = '\t'.toInt()
 
-            assertEquals(right, smusher.trySmush(left, right, 0))
+            assertEquals(right, smusher.tryHorizontalSmush(left, right, 0))
         }
 
         @Test
         fun `trySmush returns hardblank when both inputs are hardblanks`() {
             val hardblank = '$'.toInt()
 
-            assertEquals(hardblank, smusher.trySmush(hardblank, hardblank, hardblank))
+            assertEquals(hardblank, smusher.tryHorizontalSmush(hardblank, hardblank, hardblank))
         }
 
         @Test
@@ -66,17 +66,17 @@ class HorizontalSmusherTests {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
 
-            assertEquals(right, smusher.trySmush(left, right, 0))
+            assertEquals(right, smusher.tryHorizontalSmush(left, right, 0))
         }
     }
 
     class EqualCharacter {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.EqualCharacter)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.EqualCharacter))
 
         @Test
         fun `trySmush returns left character when left and right are equal`() {
             val expected = 'j'.toInt()
-            val result = smusher.trySmush(expected, expected, 0)
+            val result = smusher.tryHorizontalSmush(expected, expected, 0)
 
             assertEquals(expected, result)
         }
@@ -85,7 +85,7 @@ class HorizontalSmusherTests {
         fun `trySmush returns null when left and right are not equal`() {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertNull(result)
         }
@@ -93,14 +93,14 @@ class HorizontalSmusherTests {
         @Test
         fun `trySmush returns null when left and right both equal the hardblank`() {
             val char = 'j'.toInt()
-            val result = smusher.trySmush(char, char, hardblank = char)
+            val result = smusher.tryHorizontalSmush(char, char, hardblank = char)
 
             assertNull(result)
         }
     }
 
     class Underscore {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.Underscore)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Underscore))
         private val underscoreReplacers = listOf(
             '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
         ).map { it.toInt() }
@@ -110,8 +110,8 @@ class HorizontalSmusherTests {
             .map { input ->
                 DynamicTest.dynamicTest("'$input' can smush '_'") {
                     val underscore = '_'.toInt()
-                    val resultLeft = smusher.trySmush(input, underscore, 0)
-                    val resultRight = smusher.trySmush(underscore, input, 0)
+                    val resultLeft = smusher.tryHorizontalSmush(input, underscore, 0)
+                    val resultRight = smusher.tryHorizontalSmush(underscore, input, 0)
 
                     assertEquals(input, resultLeft)
                     assertEquals(input, resultRight)
@@ -122,14 +122,14 @@ class HorizontalSmusherTests {
         fun `trySmush returns null for any other character combination`() {
             val underscore = '_'.toInt()
             val other = 'j'.toInt()
-            val result = smusher.trySmush(underscore, other, 0)
+            val result = smusher.tryHorizontalSmush(underscore, other, 0)
 
             assertNull(result)
         }
     }
 
     class Hierarchy {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.Hierarchy)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Hierarchy))
         private val charClassMap = mapOf(
             '|' to 1,
             '/' to 2, '\\' to 2,
@@ -146,7 +146,7 @@ class HorizontalSmusherTests {
                 cartesianProduct(keys, keys) { left, right ->
                     val leftClass = charClassMap[left]!!
                     val rightClass = charClassMap[right]!!
-                    val result = smusher.trySmush(left, right, 0)
+                    val result = smusher.tryHorizontalSmush(left, right, 0)
 
                     when {
                         leftClass > rightClass -> DynamicTest.dynamicTest("$left can smush $right") {
@@ -167,14 +167,14 @@ class HorizontalSmusherTests {
             val randomChar = 'j'.toInt()
             val classMember = '/'.toInt()
 
-            assertNull(smusher.trySmush(randomChar, classMember, 0))
-            assertNull(smusher.trySmush(classMember, randomChar, 0))
-            assertNull(smusher.trySmush(randomChar, randomChar, 0))
+            assertNull(smusher.tryHorizontalSmush(randomChar, classMember, 0))
+            assertNull(smusher.tryHorizontalSmush(classMember, randomChar, 0))
+            assertNull(smusher.tryHorizontalSmush(randomChar, randomChar, 0))
         }
     }
 
     class OppositePair {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.OppositePair)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.OppositePair))
         private val pairs = mapOf(
             '[' to ']',
             ']' to '[',
@@ -192,7 +192,7 @@ class HorizontalSmusherTests {
             .map { (left, right) ->
                 DynamicTest.dynamicTest("'$left' can smush '$right'") {
                     val expected = '|'.toInt()
-                    val result = smusher.trySmush(left, right, 0)
+                    val result = smusher.tryHorizontalSmush(left, right, 0)
 
                     assertEquals(expected, result)
                 }
@@ -202,21 +202,21 @@ class HorizontalSmusherTests {
         fun `trySmush returns null when left and right do not form a valid pair`() {
             val left = '{'.toInt()
             val right = ']'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertNull(result)
         }
     }
 
     class BigX {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.BigX)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.BigX))
 
         @Test
         fun `trySmush returns vertical bar when left is forward slash and right is backslash`() {
             val expected = '|'.toInt()
             val left = '/'.toInt()
             val right = '\\'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertEquals(expected, result)
         }
@@ -226,7 +226,7 @@ class HorizontalSmusherTests {
             val expected = 'Y'.toInt()
             val left = '\\'.toInt()
             val right = '/'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertEquals(expected, result)
         }
@@ -236,7 +236,7 @@ class HorizontalSmusherTests {
             val expected = 'X'.toInt()
             val left = '>'.toInt()
             val right = '<'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertEquals(expected, result)
         }
@@ -245,19 +245,19 @@ class HorizontalSmusherTests {
         fun `trySmush returns null when left and right do not form a valid pair`() {
             val left = '<'.toInt()
             val right = '>'.toInt()
-            val result = smusher.trySmush(left, right, 0)
+            val result = smusher.tryHorizontalSmush(left, right, 0)
 
             assertNull(result)
         }
     }
 
     class Hardblank {
-        private val smusher = HorizontalSmusher(HorizontalSmusher.Rule.Hardblank)
+        private val smusher = Smusher(horizontalRules = listOf(HorizontalSmushingRule.Hardblank))
 
         @Test
         fun `trySmush returns hardblank when all inputs are hardblanks`() {
             val hardblank = '$'.toInt()
-            val result = smusher.trySmush(hardblank, hardblank, hardblank)
+            val result = smusher.tryHorizontalSmush(hardblank, hardblank, hardblank)
 
             assertEquals(hardblank, result)
         }
@@ -267,20 +267,22 @@ class HorizontalSmusherTests {
             val randomChar = 'j'.toInt()
             val hardblank = '$'.toInt()
 
-            assertNull(smusher.trySmush(randomChar, hardblank, hardblank))
-            assertNull(smusher.trySmush(hardblank, randomChar, hardblank))
-            assertNull(smusher.trySmush(hardblank, hardblank, randomChar))
+            assertNull(smusher.tryHorizontalSmush(randomChar, hardblank, hardblank))
+            assertNull(smusher.tryHorizontalSmush(hardblank, randomChar, hardblank))
+            assertNull(smusher.tryHorizontalSmush(hardblank, hardblank, randomChar))
         }
     }
 
     class MultipleRules {
-        private val smusher = HorizontalSmusher(
-            HorizontalSmusher.Rule.EqualCharacter,
-            HorizontalSmusher.Rule.Underscore,
-            HorizontalSmusher.Rule.Hierarchy,
-            HorizontalSmusher.Rule.OppositePair,
-            HorizontalSmusher.Rule.BigX,
-            HorizontalSmusher.Rule.Hardblank
+        private val smusher = Smusher(
+            horizontalRules = listOf(
+                HorizontalSmushingRule.EqualCharacter,
+                HorizontalSmushingRule.Underscore,
+                HorizontalSmushingRule.Hierarchy,
+                HorizontalSmushingRule.OppositePair,
+                HorizontalSmushingRule.BigX,
+                HorizontalSmushingRule.Hardblank
+            )
         )
 
         @Test
@@ -290,12 +292,12 @@ class HorizontalSmusherTests {
             val openParen = '('.toInt()
             val closeParen = ')'.toInt()
 
-            assertEquals(lessThan, smusher.trySmush(lessThan, lessThan, 0))        // Equal character
-            assertEquals(lessThan, smusher.trySmush('_'.toInt(), lessThan, 0))     // Underscore
-            assertEquals(lessThan, smusher.trySmush(openParen, lessThan, 0))       // Hierarchy
-            assertEquals('|'.toInt(), smusher.trySmush(openParen, closeParen, 0))  // Opposite pair
-            assertEquals('X'.toInt(), smusher.trySmush(greaterThan, lessThan, 0))  // Big X
-            assertEquals(lessThan, smusher.trySmush(lessThan, lessThan, lessThan)) // Hardblank
+            assertEquals(lessThan, smusher.tryHorizontalSmush(lessThan, lessThan, 0))        // Equal character
+            assertEquals(lessThan, smusher.tryHorizontalSmush('_'.toInt(), lessThan, 0))     // Underscore
+            assertEquals(lessThan, smusher.tryHorizontalSmush(openParen, lessThan, 0))       // Hierarchy
+            assertEquals('|'.toInt(), smusher.tryHorizontalSmush(openParen, closeParen, 0))  // Opposite pair
+            assertEquals('X'.toInt(), smusher.tryHorizontalSmush(greaterThan, lessThan, 0))  // Big X
+            assertEquals(lessThan, smusher.tryHorizontalSmush(lessThan, lessThan, lessThan)) // Hardblank
         }
     }
 }

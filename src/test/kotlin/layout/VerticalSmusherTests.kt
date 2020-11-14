@@ -17,15 +17,15 @@ class VerticalSmusherTests {
      * Occurs when no smushing rules are specified.
      */
     class Universal {
-        private val smusher = VerticalSmusher()
+        private val smusher = Smusher()
 
         @Test
         fun `trySmush returns hardblank when given hardblank and whitespace`() {
             val hardblank = '$'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(hardblank, smusher.trySmush(hardblank, whitespace, hardblank))
-            assertEquals(hardblank, smusher.trySmush(whitespace, hardblank, hardblank))
+            assertEquals(hardblank, smusher.tryVerticalSmush(hardblank, whitespace, hardblank))
+            assertEquals(hardblank, smusher.tryVerticalSmush(whitespace, hardblank, hardblank))
         }
 
         @Test
@@ -33,8 +33,8 @@ class VerticalSmusherTests {
             val visible = 'j'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(visible, smusher.trySmush(visible, whitespace, 0))
-            assertEquals(visible, smusher.trySmush(whitespace, visible, 0))
+            assertEquals(visible, smusher.tryVerticalSmush(visible, whitespace, 0))
+            assertEquals(visible, smusher.tryVerticalSmush(whitespace, visible, 0))
         }
 
         @Test
@@ -42,8 +42,8 @@ class VerticalSmusherTests {
             val visible = 'j'.toInt()
             val hardblank = '$'.toInt()
 
-            assertEquals(visible, smusher.trySmush(visible, hardblank, hardblank))
-            assertEquals(visible, smusher.trySmush(hardblank, visible, hardblank))
+            assertEquals(visible, smusher.tryVerticalSmush(visible, hardblank, hardblank))
+            assertEquals(visible, smusher.tryVerticalSmush(hardblank, visible, hardblank))
         }
 
         @Test
@@ -51,14 +51,14 @@ class VerticalSmusherTests {
             val top = ' '.toInt()
             val bottom = '\t'.toInt()
 
-            assertEquals(bottom, smusher.trySmush(top, bottom, 0))
+            assertEquals(bottom, smusher.tryVerticalSmush(top, bottom, 0))
         }
 
         @Test
         fun `trySmush returns hardblank when both inputs are hardblanks`() {
             val hardblank = '$'.toInt()
 
-            assertEquals(hardblank, smusher.trySmush(hardblank, hardblank, hardblank))
+            assertEquals(hardblank, smusher.tryVerticalSmush(hardblank, hardblank, hardblank))
         }
 
         @Test
@@ -66,17 +66,17 @@ class VerticalSmusherTests {
             val top = 'j'.toInt()
             val bottom = 'k'.toInt()
 
-            assertEquals(bottom, smusher.trySmush(top, bottom, 0))
+            assertEquals(bottom, smusher.tryVerticalSmush(top, bottom, 0))
         }
     }
 
     class EqualCharacter {
-        private val smusher = VerticalSmusher(VerticalSmusher.Rule.EqualCharacter)
+        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.EqualCharacter))
 
         @Test
         fun `trySmush returns top character when top and bottom are equal`() {
             val expected = 'j'.toInt()
-            val result = smusher.trySmush(expected, expected, 0)
+            val result = smusher.tryVerticalSmush(expected, expected, 0)
 
             assertEquals(expected, result)
         }
@@ -85,14 +85,14 @@ class VerticalSmusherTests {
         fun `trySmush returns null when top and bottom are not equal`() {
             val top = 'j'.toInt()
             val bottom = 'k'.toInt()
-            val result = smusher.trySmush(top, bottom, 0)
+            val result = smusher.tryVerticalSmush(top, bottom, 0)
 
             assertNull(result)
         }
     }
 
     class Underscore {
-        private val smusher = VerticalSmusher(VerticalSmusher.Rule.Underscore)
+        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.Underscore))
         private val underscoreReplacers = listOf(
             '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
         ).map { it.toInt() }
@@ -103,8 +103,8 @@ class VerticalSmusherTests {
                 DynamicTest.dynamicTest("'$input' can smush '_'") {
                     val underscore = '_'.toInt()
 
-                    assertEquals(input, smusher.trySmush(input, underscore, 0))
-                    assertEquals(input, smusher.trySmush(underscore, input, 0))
+                    assertEquals(input, smusher.tryVerticalSmush(input, underscore, 0))
+                    assertEquals(input, smusher.tryVerticalSmush(underscore, input, 0))
                 }
             }
 
@@ -113,13 +113,13 @@ class VerticalSmusherTests {
             val underscore = '_'.toInt()
             val other = 'j'.toInt()
 
-            assertNull(smusher.trySmush(other, underscore, 0))
-            assertNull(smusher.trySmush(underscore, other, 0))
+            assertNull(smusher.tryVerticalSmush(other, underscore, 0))
+            assertNull(smusher.tryVerticalSmush(underscore, other, 0))
         }
     }
 
     class Hierarchy {
-        private val smusher = VerticalSmusher(VerticalSmusher.Rule.Hierarchy)
+        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.Hierarchy))
         private val charClassMap = mapOf(
             '|' to 1,
             '/' to 2, '\\' to 2,
@@ -136,7 +136,7 @@ class VerticalSmusherTests {
                 cartesianProduct(keys, keys) { top, bottom ->
                     val topClass = charClassMap[top]!!
                     val bottomClass = charClassMap[bottom]!!
-                    val result = smusher.trySmush(top, bottom, 0)
+                    val result = smusher.tryVerticalSmush(top, bottom, 0)
 
                     when {
                         topClass > bottomClass -> DynamicTest.dynamicTest("$top can smush $bottom") {
@@ -157,14 +157,14 @@ class VerticalSmusherTests {
             val randomChar = 'j'.toInt()
             val classMember = '/'.toInt()
 
-            assertNull(smusher.trySmush(randomChar, classMember, 0))
-            assertNull(smusher.trySmush(classMember, randomChar, 0))
-            assertNull(smusher.trySmush(randomChar, randomChar, 0))
+            assertNull(smusher.tryVerticalSmush(randomChar, classMember, 0))
+            assertNull(smusher.tryVerticalSmush(classMember, randomChar, 0))
+            assertNull(smusher.tryVerticalSmush(randomChar, randomChar, 0))
         }
     }
 
     class HorizontalLine {
-        private val smusher = VerticalSmusher(VerticalSmusher.Rule.HorizontalLine)
+        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.HorizontalLine))
 
         @Test
         fun `trySmush returns '=' when top is '-' and bottom is '_'`() {
@@ -172,7 +172,7 @@ class VerticalSmusherTests {
             val top = '-'.toInt()
             val bottom = '_'.toInt()
 
-            assertEquals(expected, smusher.trySmush(top, bottom, 0))
+            assertEquals(expected, smusher.tryVerticalSmush(top, bottom, 0))
         }
 
         @Test
@@ -181,7 +181,7 @@ class VerticalSmusherTests {
             val top = '_'.toInt()
             val bottom = '-'.toInt()
 
-            assertEquals(expected, smusher.trySmush(top, bottom, 0))
+            assertEquals(expected, smusher.tryVerticalSmush(top, bottom, 0))
         }
 
         @Test
@@ -190,24 +190,24 @@ class VerticalSmusherTests {
             val underscore = '_'.toInt()
             val notAline = '$'.toInt()
 
-            assertNull(smusher.trySmush(hyphen, hyphen, 0))
-            assertNull(smusher.trySmush(underscore, underscore, 0))
-            assertNull(smusher.trySmush(hyphen, notAline, 0))
-            assertNull(smusher.trySmush(underscore, notAline, 0))
-            assertNull(smusher.trySmush(notAline, hyphen, 0))
-            assertNull(smusher.trySmush(notAline, underscore, 0))
-            assertNull(smusher.trySmush(notAline, notAline, 0))
+            assertNull(smusher.tryVerticalSmush(hyphen, hyphen, 0))
+            assertNull(smusher.tryVerticalSmush(underscore, underscore, 0))
+            assertNull(smusher.tryVerticalSmush(hyphen, notAline, 0))
+            assertNull(smusher.tryVerticalSmush(underscore, notAline, 0))
+            assertNull(smusher.tryVerticalSmush(notAline, hyphen, 0))
+            assertNull(smusher.tryVerticalSmush(notAline, underscore, 0))
+            assertNull(smusher.tryVerticalSmush(notAline, notAline, 0))
         }
     }
 
     class VerticalLine {
-        private val smusher = VerticalSmusher(VerticalSmusher.Rule.VerticalLine)
+        private val smusher = Smusher(verticalRules = listOf(VerticalSmushingRule.VerticalLine))
 
         @Test
         fun `trySmush returns vertical bar when top and bottom are also vertical bars`() {
             val verticalBar = '|'.toInt()
 
-            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0))
+            assertEquals(verticalBar, smusher.tryVerticalSmush(verticalBar, verticalBar, 0))
         }
 
         @Test
@@ -215,19 +215,22 @@ class VerticalSmusherTests {
             val verticalBar = '|'.toInt()
             val notAVerticalBar = '$'.toInt()
 
-            assertNull(smusher.trySmush(verticalBar, notAVerticalBar, 0))
-            assertNull(smusher.trySmush(notAVerticalBar, verticalBar, 0))
-            assertNull(smusher.trySmush(notAVerticalBar, notAVerticalBar, 0))
+            assertNull(smusher.tryVerticalSmush(verticalBar, notAVerticalBar, 0))
+            assertNull(smusher.tryVerticalSmush(notAVerticalBar, verticalBar, 0))
+            assertNull(smusher.tryVerticalSmush(notAVerticalBar, notAVerticalBar, 0))
         }
     }
 
     class MultipleRules {
-        private val smusher = VerticalSmusher(
-            VerticalSmusher.Rule.EqualCharacter,
-            VerticalSmusher.Rule.Underscore,
-            VerticalSmusher.Rule.Hierarchy,
-            VerticalSmusher.Rule.HorizontalLine,
-            VerticalSmusher.Rule.VerticalLine
+        private val smusher = Smusher(
+            verticalRules =
+            listOf(
+                VerticalSmushingRule.EqualCharacter,
+                VerticalSmushingRule.Underscore,
+                VerticalSmushingRule.Hierarchy,
+                VerticalSmushingRule.HorizontalLine,
+                VerticalSmushingRule.VerticalLine
+            )
         )
 
         @Test
@@ -236,11 +239,11 @@ class VerticalSmusherTests {
             val verticalBar = '|'.toInt()
             val underscore = '_'.toInt()
 
-            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0)) // Equal character
-            assertEquals(verticalBar, smusher.trySmush(underscore, verticalBar, 0))  // Underscore
-            assertEquals(openParen, smusher.trySmush(openParen, verticalBar, 0))     // Hierarchy
-            assertEquals('='.toInt(), smusher.trySmush(underscore, '-'.toInt(), 0))  // Horizontal line
-            assertEquals(verticalBar, smusher.trySmush(verticalBar, verticalBar, 0)) // Vertical line
+            assertEquals(verticalBar, smusher.tryVerticalSmush(verticalBar, verticalBar, 0)) // Equal character
+            assertEquals(verticalBar, smusher.tryVerticalSmush(underscore, verticalBar, 0))  // Underscore
+            assertEquals(openParen, smusher.tryVerticalSmush(openParen, verticalBar, 0))     // Hierarchy
+            assertEquals('='.toInt(), smusher.tryVerticalSmush(underscore, '-'.toInt(), 0))  // Horizontal line
+            assertEquals(verticalBar, smusher.tryVerticalSmush(verticalBar, verticalBar, 0)) // Vertical line
         }
     }
 }

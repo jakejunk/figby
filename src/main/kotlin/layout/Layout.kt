@@ -3,8 +3,7 @@ package layout
 data class Layout(
     val horizontalLayout: HorizontalLayoutMode,
     val verticalLayout: VerticalLayoutMode,
-    val horizontalSmusher: HorizontalSmusher,
-    val verticalSmusher: VerticalSmusher,
+    val smusher: Smusher,
     val printDirection: PrintDirection
 )
 
@@ -21,15 +20,13 @@ fun parseOldLayout(oldLayout: Int, printDirection: Int = 0): Layout {
 fun parseFullLayout(fullLayout: Int, printDirection: Int = 0): Layout {
     val hLayoutMode = parseHorizontalLayoutMode(fullLayout)
     val vLayoutMode = parseVerticalLayoutMode(fullLayout)
-    val horizontalSmusher = parseHorizontalSmushing(fullLayout)
-    val verticalSmusher = parseVerticalSmushing(fullLayout)
+    val smusher = parseSmushingRules(fullLayout)
     val printDir = parsePrintDirection(printDirection)
 
     return Layout(
         horizontalLayout = hLayoutMode,
         verticalLayout = vLayoutMode,
-        horizontalSmusher = horizontalSmusher,
-        verticalSmusher = verticalSmusher,
+        smusher = smusher,
         printDirection = printDir
     )
 }
