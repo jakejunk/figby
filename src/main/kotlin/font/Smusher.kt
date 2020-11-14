@@ -1,4 +1,4 @@
-package layout
+package font
 
 class Smusher(
     private val horizontalRules: List<HorizontalSmushingRule> = emptyList(),

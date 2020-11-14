@@ -1,4 +1,4 @@
-package layout
+package font
 
 data class Layout(
     val horizontalLayout: HorizontalLayoutMode,

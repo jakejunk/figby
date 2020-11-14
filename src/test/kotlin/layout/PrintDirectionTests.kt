@@ -1,5 +1,7 @@
 package layout
 
+import font.PrintDirection
+import font.parsePrintDirection
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.lang.Exception

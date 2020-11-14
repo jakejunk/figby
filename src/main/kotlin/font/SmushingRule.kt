@@ -1,4 +1,4 @@
-package layout
+package font
 
 enum class HorizontalSmushingRule(val bitMask: Int) {
     EqualCharacter(1) {

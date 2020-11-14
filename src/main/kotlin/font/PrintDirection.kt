@@ -1,4 +1,4 @@
-package layout
+package font
 
 enum class PrintDirection(val value: Int) {
     LeftToRight(0),

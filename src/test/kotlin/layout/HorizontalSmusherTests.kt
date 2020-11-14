@@ -1,6 +1,8 @@
 package layout
 
 import cartesianProduct
+import font.HorizontalSmushingRule
+import font.Smusher
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory

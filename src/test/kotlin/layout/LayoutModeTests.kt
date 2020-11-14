@@ -1,5 +1,9 @@
 package layout
 
+import font.HorizontalLayoutMode
+import font.VerticalLayoutMode
+import font.parseHorizontalLayoutMode
+import font.parseVerticalLayoutMode
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

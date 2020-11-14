@@ -1,8 +1,5 @@
 package font
 
-import layout.Layout
-import layout.parseFullLayout
-import layout.parseOldLayout
 import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.streams.toList

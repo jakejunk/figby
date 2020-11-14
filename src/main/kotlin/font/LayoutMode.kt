@@ -1,4 +1,4 @@
-package layout
+package font
 
 enum class HorizontalLayoutMode(val bitMask: Int) {
     FullWidth(0),
