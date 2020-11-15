@@ -4,40 +4,43 @@ import font.*
 import font.internal.FigFontSmusher
 
 fun fakeFontWithHorizontalRules(hardblank: Int, vararg rules: HorizontalSmushingRule): FigFont {
-    val smusher = FigFontSmusher(
-        horizontalRules = rules.asList()
-    )
-
-    return FigFont(
+    return generateFakeFigFont(
         hardblank = hardblank,
-        height = 1,
-        baseline = 1,
-        maxLength = 1,
-        horizontalLayout = HorizontalLayoutMode.Smushing,
-        verticalLayout = VerticalLayoutMode.Smushing,
-        printDirection = PrintDirection.LeftToRight,
-        comments = "FAKE FONT",
-        figFontSmusher = smusher,
-        chars = emptyMap()
+        figFontSmusher = FigFontSmusher(
+            horizontalRules = rules.asList()
+        )
     )
 }
 
-//fun generateFakeFigFont(
-//    horizontalRules: List<HorizontalSmushingRule>,
-//    verticalRules: List<VerticalSmushingRule>
-//): FigFont {
-//    val smusher = FigFontSmusher(horizontalRules, verticalRules)
-//
-//    return FigFont(
-//        hardblank = ,
-//        height = ,
-//        baseline = ,
-//        maxLength = ,
-//        horizontalLayout = ,
-//        verticalLayout = ,
-//        printDirection = PrintDirection.LeftToRight,
-//        comments = "FAKE FONT",
-//        figFontSmusher = smusher,
-//        chars = emptyMap()
-//    )
-//}
+fun fakeFontWithVerticalRules(hardblank: Int, vararg rules: VerticalSmushingRule): FigFont {
+    return generateFakeFigFont(
+        hardblank = hardblank,
+        figFontSmusher = FigFontSmusher(
+            verticalRules = rules.asList()
+        )
+    )
+}
+
+private fun generateFakeFigFont(
+    hardblank: Int = 0,
+    height: Int = 1,
+    baseline: Int = 1,
+    maxLength: Int = 1,
+    horizontalLayout: HorizontalLayoutMode = HorizontalLayoutMode.FullWidth,
+    verticalLayout: VerticalLayoutMode = VerticalLayoutMode.FullHeight,
+    printDirection: PrintDirection = PrintDirection.LeftToRight,
+    comments: String = "FAKE FONT",
+    figFontSmusher: FigFontSmusher = FigFontSmusher(),
+    chars: Map<Int, FigChar> = emptyMap()
+): FigFont = FigFont(
+    hardblank = hardblank,
+    height = height,
+    baseline = baseline,
+    maxLength = maxLength,
+    horizontalLayout = horizontalLayout,
+    verticalLayout = verticalLayout,
+    printDirection = printDirection,
+    comments = comments,
+    figFontSmusher = figFontSmusher,
+    chars = chars
+)
