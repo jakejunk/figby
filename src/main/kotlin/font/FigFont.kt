@@ -47,6 +47,12 @@ data class FigFont internal constructor(
     private val figFontSmusher: FigFontSmusher,
     private val chars: Map<Int, FigChar>
 ) {
+    val horizontalSmushingRules: List<HorizontalSmushingRule>
+        get() = figFontSmusher.horizontalRules
+
+    val verticalSmushingRules: List<VerticalSmushingRule>
+        get() = figFontSmusher.verticalRules
+
     operator fun get(charCode: Int): FigChar? {
         return chars[charCode] ?: chars[0]
     }
@@ -60,9 +66,7 @@ data class FigFont internal constructor(
     }
 }
 
-fun parseFigFont(fontFile: InputStream): FigFont {
-    val reader = fontFile.bufferedReader()
-
+fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
     val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
     val header = parseFigFontHeader(headerLine)
     val printDirection = parsePrintDirection(header.printDirection)
@@ -72,9 +76,9 @@ fun parseFigFont(fontFile: InputStream): FigFont {
     }
 
     val comments = readComments(header.commentLines, reader)
-    val chars = parseChars(reader, header.height)
+    val chars = parseChars(reader, header.maxLength, header.height)
 
-    return FigFont(
+    FigFont(
         hardblank = header.hardblank,
         height = header.height,
         baseline = header.baseline,
@@ -89,44 +93,35 @@ fun parseFigFont(fontFile: InputStream): FigFont {
 }
 
 private fun readComments(numLines: Int, reader: BufferedReader): String {
-    val builder = StringBuilder()
-
-    repeat(numLines) {
-        val line = reader.readLine()
+    val lines = List(numLines) {
+        reader.readLine()
             ?: throw Exception("Expected $numLines lines of comments, only received $it")
-
-        builder.append(line)
-        builder.append(System.lineSeparator())
     }
 
-    return builder.toString()
+    return lines.joinToString(separator = System.lineSeparator())
 }
 
-private fun parseChars(src: BufferedReader, height: Int): Map<Int, FigChar> {
-    val requiredChars = parseRequiredChars(src, height)
-    val additionalChars = parseAdditionalChars(src, height)
+private fun parseChars(src: BufferedReader, maxLength: Int, height: Int): Map<Int, FigChar> {
+    val requiredChars = parseRequiredChars(src, maxLength, height)
+    val additionalChars = parseAdditionalChars(src, maxLength, height)
 
     return requiredChars + additionalChars
 }
 
-private fun parseRequiredChars(src: BufferedReader, height: Int): Map<Int, FigChar> {
-    val requiredChars = (32 .. 126) + listOf(196, 214, 220, 223, 228, 246, 252)
+private fun parseRequiredChars(src: BufferedReader, maxLength: Int, height: Int): Map<Int, FigChar> {
+    val requiredChars = (32..126) + listOf(196, 214, 220, 223, 228, 246, 252)
 
     return requiredChars.map {
-        it to parseSingleLetter(src, height)
+        it to parseSingleLetter(src, maxLength, height)
     }.toMap()
 }
 
-private fun parseAdditionalChars(src: BufferedReader, height: Int): Map<Int, FigChar> {
-    val charCodePairs = mutableListOf<Pair<Int, FigChar>>()
-
-    while (true) {
-        val charCode = parseCodeTag(src) ?: break
-
-        charCodePairs += (charCode to parseSingleLetter(src, height))
-    }
-
-    return charCodePairs.toMap()
+private fun parseAdditionalChars(src: BufferedReader, maxLength: Int, height: Int): Map<Int, FigChar> {
+    return generateSequence {
+        parseCodeTag(src)?.let {
+            it to parseSingleLetter(src, maxLength, height)
+        }
+    }.toMap()
 }
 
 private fun parseCodeTag(src: BufferedReader): Int? {
@@ -145,12 +140,12 @@ private fun parseCodeTag(src: BufferedReader): Int? {
     return charCode ?: throw Error("Expected numeric character code in code tag: $codeTag")
 }
 
-private fun parseSingleLetter(src: BufferedReader, height: Int): FigChar {
-    val firstLine = readLetterLine(src)
+private fun parseSingleLetter(src: BufferedReader, maxLength: Int, height: Int): FigChar {
+    val firstLine = readLetterLine(src, maxLength)
     val lines = mutableListOf(firstLine)
 
     repeat(height - 1) {
-        val line = readLetterLine(src)
+        val line = readLetterLine(src, maxLength)
         if (line.length != firstLine.length) {
             throw Exception("Expected a width of ${firstLine.length}, found ${line.length} characters")
         }
@@ -161,9 +156,13 @@ private fun parseSingleLetter(src: BufferedReader, height: Int): FigChar {
     return FigChar(lines)
 }
 
-private fun readLetterLine(src: BufferedReader): FigCharLine {
+private fun readLetterLine(src: BufferedReader, maxLength: Int): FigCharLine {
     val line = src.readLine()
         ?: throw Exception("Unexpected end of sub-character input")
+
+    if (line.length > maxLength) {
+        throw Exception("Character line width exceeds specified max length (${line.length} > $maxLength)")
+    }
 
     val subChars = line.split('@')[0]
         .codePoints()

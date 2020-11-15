@@ -12,7 +12,7 @@ internal class FigFontHeader(
 )
 
 internal fun parseFigFontHeader(headerLine: String): FigFontHeader {
-    val params = headerLine.split(" ")
+    val params = headerLine.split(" ").filter { it.isNotEmpty() }
     if (params.size < 6) {
         throw Exception("Malformed header, TODO")
     }
@@ -20,7 +20,7 @@ internal fun parseFigFontHeader(headerLine: String): FigFontHeader {
     // Required values [0, 5]
     val hardblank = parseSignature(params[0])
     val height = parseNumericParam(params[1], "height")
-    val baseline = parseNumericParam(params[2], "baseline")
+    val baseline = parseBaseline(params[2], height)
     val maxLength = parseNumericParam(params[3], "max length")
     val oldLayout = parseNumericParam(params[4], "old layout")
     val commentLines = parseNumericParam(params[5], "comment lines")
@@ -49,9 +49,24 @@ private fun parseSignature(signatureAndHardblank: String): Int {
 
     if (signatureParts.size != 2 || signatureParts[0] != "") {
         throw Exception("Malformed signature")
+    } else if (signatureParts[1].length != 1) {
+        throw Exception("Too many hardblanks")
     }
 
-    return signatureParts[1].codePointAt(0)
+    return when (val hardblank = signatureParts[1].codePointAt(0)) {
+        32, 13, 10, 0 -> throw Exception("Invalid hardblank character")
+        else -> hardblank
+    }
+}
+
+private fun parseBaseline(baselineParam: String, fontHeight: Int): Int {
+    val baseline = parseNumericParam(baselineParam, "baseline")
+
+    return when {
+        baseline < 1 -> throw Exception("Baseline cannot be less than 1")
+        baseline > fontHeight -> throw Exception("Baseline cannot be greater than the font's height")
+        else -> baseline
+    }
 }
 
 private fun parseNumericParam(param: String, paramName: String): Int {
