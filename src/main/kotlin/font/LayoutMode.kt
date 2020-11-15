@@ -12,7 +12,7 @@ enum class VerticalLayoutMode(val bitMask: Int) {
     Smushing(16384)
 }
 
-fun parseHorizontalLayoutMode(layoutMask: Int): HorizontalLayoutMode {
+internal fun parseHorizontalLayoutMode(layoutMask: Int): HorizontalLayoutMode {
     val smushingMask = HorizontalLayoutMode.Smushing.bitMask
     val kerningMask = HorizontalLayoutMode.Kerning.bitMask
 
@@ -23,7 +23,7 @@ fun parseHorizontalLayoutMode(layoutMask: Int): HorizontalLayoutMode {
     }
 }
 
-fun parseVerticalLayoutMode(layoutMask: Int): VerticalLayoutMode {
+internal fun parseVerticalLayoutMode(layoutMask: Int): VerticalLayoutMode {
     val smushingMask = VerticalLayoutMode.Smushing.bitMask
     val fittingMask = VerticalLayoutMode.VerticalFitting.bitMask
 

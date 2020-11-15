@@ -1,3 +1,5 @@
+package helpers
+
 fun <T, U, V> cartesianProduct(
     leftList: List<T>,
     rightList: List<U>,

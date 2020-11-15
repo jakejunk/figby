@@ -1,15 +1,14 @@
-package layout
+package font
 
-import cartesianProduct
-import font.HorizontalSmushingRule
-import font.internal.FigFontSmusher
+import helpers.cartesianProduct
+import helpers.fakeFontWithHorizontalRules
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class HorizontalSmusherTests {
+class TryHorizontalSmushTests {
     /**
      * Calculating universal smushing for the horizontal axis follows these rules:
      * 1. Hardblanks win over whitespace
@@ -19,15 +18,15 @@ class HorizontalSmusherTests {
      * Occurs when no smushing rules are specified.
      */
     class Universal {
-        private val smusher = FigFontSmusher()
+        private val hardblank = '$'.toInt()
+        private val font = fakeFontWithHorizontalRules(hardblank)
 
         @Test
         fun `trySmush returns hardblank when given hardblank and whitespace`() {
-            val hardblank = '$'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(hardblank, smusher.tryHorizontalSmush(hardblank, whitespace, hardblank))
-            assertEquals(hardblank, smusher.tryHorizontalSmush(whitespace, hardblank, hardblank))
+            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, whitespace))
+            assertEquals(hardblank, font.tryHorizontalSmush(whitespace, hardblank))
         }
 
         @Test
@@ -35,17 +34,16 @@ class HorizontalSmusherTests {
             val visible = 'j'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(visible, smusher.tryHorizontalSmush(visible, whitespace, 0))
-            assertEquals(visible, smusher.tryHorizontalSmush(whitespace, visible, 0))
+            assertEquals(visible, font.tryHorizontalSmush(visible, whitespace))
+            assertEquals(visible, font.tryHorizontalSmush(whitespace, visible))
         }
 
         @Test
         fun `trySmush returns visible character when given visible character and hardblank`() {
             val visible = 'j'.toInt()
-            val hardblank = '$'.toInt()
 
-            assertEquals(visible, smusher.tryHorizontalSmush(visible, hardblank, hardblank))
-            assertEquals(visible, smusher.tryHorizontalSmush(hardblank, visible, hardblank))
+            assertEquals(visible, font.tryHorizontalSmush(visible, hardblank))
+            assertEquals(visible, font.tryHorizontalSmush(hardblank, visible))
         }
 
         @Test
@@ -53,14 +51,12 @@ class HorizontalSmusherTests {
             val left = ' '.toInt()
             val right = '\t'.toInt()
 
-            assertEquals(right, smusher.tryHorizontalSmush(left, right, 0))
+            assertEquals(right, font.tryHorizontalSmush(left, right))
         }
 
         @Test
         fun `trySmush returns hardblank when both inputs are hardblanks`() {
-            val hardblank = '$'.toInt()
-
-            assertEquals(hardblank, smusher.tryHorizontalSmush(hardblank, hardblank, hardblank))
+            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))
         }
 
         @Test
@@ -68,41 +64,37 @@ class HorizontalSmusherTests {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
 
-            assertEquals(right, smusher.tryHorizontalSmush(left, right, 0))
+            assertEquals(right, font.tryHorizontalSmush(left, right))
         }
     }
 
     class EqualCharacter {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.EqualCharacter))
+        private val hardblank = '$'.toInt()
+        private val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.EqualCharacter)
 
         @Test
         fun `trySmush returns left character when left and right are equal`() {
             val expected = 'j'.toInt()
-            val result = smusher.tryHorizontalSmush(expected, expected, 0)
 
-            assertEquals(expected, result)
+            assertEquals(expected, font.tryHorizontalSmush(expected, expected))
         }
 
         @Test
         fun `trySmush returns null when left and right are not equal`() {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertNull(result)
+            assertNull(font.tryHorizontalSmush(left, right))
         }
 
         @Test
         fun `trySmush returns null when left and right both equal the hardblank`() {
-            val char = 'j'.toInt()
-            val result = smusher.tryHorizontalSmush(char, char, hardblank = char)
-
-            assertNull(result)
+            assertNull(font.tryHorizontalSmush(hardblank, hardblank))
         }
     }
 
     class Underscore {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Underscore))
+        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Underscore)
         private val underscoreReplacers = listOf(
             '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
         ).map { it.toInt() }
@@ -112,11 +104,9 @@ class HorizontalSmusherTests {
             .map { input ->
                 DynamicTest.dynamicTest("'$input' can smush '_'") {
                     val underscore = '_'.toInt()
-                    val resultLeft = smusher.tryHorizontalSmush(input, underscore, 0)
-                    val resultRight = smusher.tryHorizontalSmush(underscore, input, 0)
 
-                    assertEquals(input, resultLeft)
-                    assertEquals(input, resultRight)
+                    assertEquals(input, font.tryHorizontalSmush(input, underscore))
+                    assertEquals(input, font.tryHorizontalSmush(underscore, input))
                 }
             }
 
@@ -124,14 +114,13 @@ class HorizontalSmusherTests {
         fun `trySmush returns null for any other character combination`() {
             val underscore = '_'.toInt()
             val other = 'j'.toInt()
-            val result = smusher.tryHorizontalSmush(underscore, other, 0)
 
-            assertNull(result)
+            assertNull(font.tryHorizontalSmush(underscore, other))
         }
     }
 
     class Hierarchy {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Hierarchy))
+        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Hierarchy)
         private val charClassMap = mapOf(
             '|' to 1,
             '/' to 2, '\\' to 2,
@@ -146,9 +135,9 @@ class HorizontalSmusherTests {
             .toList()
             .let { keys ->
                 cartesianProduct(keys, keys) { left, right ->
-                    val leftClass = charClassMap[left]!!
-                    val rightClass = charClassMap[right]!!
-                    val result = smusher.tryHorizontalSmush(left, right, 0)
+                    val leftClass = charClassMap.getValue(left)
+                    val rightClass = charClassMap.getValue(right)
+                    val result = font.tryHorizontalSmush(left, right)
 
                     when {
                         leftClass > rightClass -> DynamicTest.dynamicTest("$left can smush $right") {
@@ -169,14 +158,14 @@ class HorizontalSmusherTests {
             val randomChar = 'j'.toInt()
             val classMember = '/'.toInt()
 
-            assertNull(smusher.tryHorizontalSmush(randomChar, classMember, 0))
-            assertNull(smusher.tryHorizontalSmush(classMember, randomChar, 0))
-            assertNull(smusher.tryHorizontalSmush(randomChar, randomChar, 0))
+            assertNull(font.tryHorizontalSmush(randomChar, classMember))
+            assertNull(font.tryHorizontalSmush(classMember, randomChar))
+            assertNull(font.tryHorizontalSmush(randomChar, randomChar))
         }
     }
 
     class OppositePair {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.OppositePair))
+        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.OppositePair)
         private val pairs = mapOf(
             '[' to ']',
             ']' to '[',
@@ -194,9 +183,8 @@ class HorizontalSmusherTests {
             .map { (left, right) ->
                 DynamicTest.dynamicTest("'$left' can smush '$right'") {
                     val expected = '|'.toInt()
-                    val result = smusher.tryHorizontalSmush(left, right, 0)
 
-                    assertEquals(expected, result)
+                    assertEquals(expected, font.tryHorizontalSmush(left, right))
                 }
             }
 
@@ -204,23 +192,21 @@ class HorizontalSmusherTests {
         fun `trySmush returns null when left and right do not form a valid pair`() {
             val left = '{'.toInt()
             val right = ']'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertNull(result)
+            assertNull(font.tryHorizontalSmush(left, right))
         }
     }
 
     class BigX {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.BigX))
+        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.BigX)
 
         @Test
         fun `trySmush returns vertical bar when left is forward slash and right is backslash`() {
             val expected = '|'.toInt()
             val left = '/'.toInt()
             val right = '\\'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertEquals(expected, result)
+            assertEquals(expected, font.tryHorizontalSmush(left, right))
         }
 
         @Test
@@ -228,9 +214,8 @@ class HorizontalSmusherTests {
             val expected = 'Y'.toInt()
             val left = '\\'.toInt()
             val right = '/'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertEquals(expected, result)
+            assertEquals(expected, font.tryHorizontalSmush(left, right))
         }
 
         @Test
@@ -238,53 +223,46 @@ class HorizontalSmusherTests {
             val expected = 'X'.toInt()
             val left = '>'.toInt()
             val right = '<'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertEquals(expected, result)
+            assertEquals(expected, font.tryHorizontalSmush(left, right))
         }
 
         @Test
         fun `trySmush returns null when left and right do not form a valid pair`() {
             val left = '<'.toInt()
             val right = '>'.toInt()
-            val result = smusher.tryHorizontalSmush(left, right, 0)
 
-            assertNull(result)
+            assertNull(font.tryHorizontalSmush(left, right))
         }
     }
 
     class Hardblank {
-        private val smusher = FigFontSmusher(horizontalRules = listOf(HorizontalSmushingRule.Hardblank))
+        private val hardblank = '$'.toInt()
+        private val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.Hardblank)
 
         @Test
         fun `trySmush returns hardblank when all inputs are hardblanks`() {
-            val hardblank = '$'.toInt()
-            val result = smusher.tryHorizontalSmush(hardblank, hardblank, hardblank)
-
-            assertEquals(hardblank, result)
+            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))
         }
 
         @Test
         fun `trySmush returns null when given any other combination of inputs`() {
             val randomChar = 'j'.toInt()
-            val hardblank = '$'.toInt()
 
-            assertNull(smusher.tryHorizontalSmush(randomChar, hardblank, hardblank))
-            assertNull(smusher.tryHorizontalSmush(hardblank, randomChar, hardblank))
-            assertNull(smusher.tryHorizontalSmush(hardblank, hardblank, randomChar))
+            assertNull(font.tryHorizontalSmush(randomChar, hardblank))
+            assertNull(font.tryHorizontalSmush(hardblank, randomChar))
         }
     }
 
     class MultipleRules {
-        private val smusher = FigFontSmusher(
-            horizontalRules = listOf(
-                HorizontalSmushingRule.EqualCharacter,
-                HorizontalSmushingRule.Underscore,
-                HorizontalSmushingRule.Hierarchy,
-                HorizontalSmushingRule.OppositePair,
-                HorizontalSmushingRule.BigX,
-                HorizontalSmushingRule.Hardblank
-            )
+        private val hardblank = '$'.toInt()
+        private val font = fakeFontWithHorizontalRules(hardblank,
+            HorizontalSmushingRule.EqualCharacter,
+            HorizontalSmushingRule.Underscore,
+            HorizontalSmushingRule.Hierarchy,
+            HorizontalSmushingRule.OppositePair,
+            HorizontalSmushingRule.BigX,
+            HorizontalSmushingRule.Hardblank
         )
 
         @Test
@@ -294,12 +272,12 @@ class HorizontalSmusherTests {
             val openParen = '('.toInt()
             val closeParen = ')'.toInt()
 
-            assertEquals(lessThan, smusher.tryHorizontalSmush(lessThan, lessThan, 0))        // Equal character
-            assertEquals(lessThan, smusher.tryHorizontalSmush('_'.toInt(), lessThan, 0))     // Underscore
-            assertEquals(lessThan, smusher.tryHorizontalSmush(openParen, lessThan, 0))       // Hierarchy
-            assertEquals('|'.toInt(), smusher.tryHorizontalSmush(openParen, closeParen, 0))  // Opposite pair
-            assertEquals('X'.toInt(), smusher.tryHorizontalSmush(greaterThan, lessThan, 0))  // Big X
-            assertEquals(lessThan, smusher.tryHorizontalSmush(lessThan, lessThan, lessThan)) // Hardblank
+            assertEquals(lessThan, font.tryHorizontalSmush(lessThan, lessThan))       // Equal character
+            assertEquals(lessThan, font.tryHorizontalSmush('_'.toInt(), lessThan))    // Underscore
+            assertEquals(lessThan, font.tryHorizontalSmush(openParen, lessThan))      // Hierarchy
+            assertEquals('|'.toInt(), font.tryHorizontalSmush(openParen, closeParen)) // Opposite pair
+            assertEquals('X'.toInt(), font.tryHorizontalSmush(greaterThan, lessThan)) // Big X
+            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))    // Hardblank
         }
     }
 }

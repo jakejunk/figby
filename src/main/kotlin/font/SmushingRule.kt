@@ -9,15 +9,15 @@ enum class HorizontalSmushingRule(val bitMask: Int) {
     },
     Underscore(2) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? = when {
-            left == underscore && right in underscoreReplacers -> right
-            right == underscore && left in underscoreReplacers -> left
+            left == UNDERSCORE && right in UNDERSCORE_REPLACERS -> right
+            right == UNDERSCORE && left in UNDERSCORE_REPLACERS -> left
             else -> null
         }
     },
     Hierarchy(4) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? {
-            val leftClass = charClassMap[left] ?: return null
-            val rightClass = charClassMap[right] ?: return null
+            val leftClass = CHAR_CLASS_MAP[left] ?: return null
+            val rightClass = CHAR_CLASS_MAP[right] ?: return null
             return when {
                 leftClass > rightClass -> left
                 leftClass < rightClass -> right
@@ -26,14 +26,14 @@ enum class HorizontalSmushingRule(val bitMask: Int) {
         }
     },
     OppositePair(8) {
-        override fun apply(left: Int, right: Int, hardblank: Int): Int? = when (pairs[left]) {
-            right -> verticalBar
+        override fun apply(left: Int, right: Int, hardblank: Int): Int? = when (PAIRS[left]) {
+            right -> VERTICAL_BAR
             else -> null
         }
     },
     BigX(16) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? {
-            return xPairs[Pair(left, right)]
+            return X_PAIRS[Pair(left, right)]
         }
     },
     Hardblank(32) {
@@ -52,15 +52,15 @@ enum class VerticalSmushingRule(val bitMask: Int) {
     },
     Underscore(512) {
         override fun apply(top: Int, bottom: Int): Int? = when {
-            top == underscore && bottom in underscoreReplacers -> bottom
-            bottom == underscore && top in underscoreReplacers -> top
+            top == UNDERSCORE && bottom in UNDERSCORE_REPLACERS -> bottom
+            bottom == UNDERSCORE && top in UNDERSCORE_REPLACERS -> top
             else -> null
         }
     },
     Hierarchy(1024) {
         override fun apply(top: Int, bottom: Int): Int? {
-            val topClass = charClassMap[top] ?: return null
-            val bottomClass = charClassMap[bottom] ?: return null
+            val topClass = CHAR_CLASS_MAP[top] ?: return null
+            val bottomClass = CHAR_CLASS_MAP[bottom] ?: return null
             return when {
                 topClass > bottomClass -> top
                 topClass < bottomClass -> bottom
@@ -70,14 +70,14 @@ enum class VerticalSmushingRule(val bitMask: Int) {
     },
     HorizontalLine(2048) {
         override fun apply(top: Int, bottom: Int): Int? = when {
-            top == hyphen && bottom == underscore -> equalSign
-            top == underscore && bottom == hyphen -> equalSign
+            top == HYPHEN && bottom == UNDERSCORE -> EQUAL_SIGN
+            top == UNDERSCORE && bottom == HYPHEN -> EQUAL_SIGN
             else -> null
         }
     },
     VerticalLine(4096) {
         override fun apply(top: Int, bottom: Int): Int? = when {
-            top == verticalBar && bottom == verticalBar -> verticalBar
+            top == VERTICAL_BAR && bottom == VERTICAL_BAR -> VERTICAL_BAR
             else -> null
         }
     };
@@ -85,17 +85,16 @@ enum class VerticalSmushingRule(val bitMask: Int) {
     abstract fun apply(top: Int, bottom: Int): Int?
 }
 
+private const val HYPHEN = '-'.toInt()
+private const val EQUAL_SIGN = '='.toInt()
+private const val VERTICAL_BAR = '|'.toInt()
+private const val UNDERSCORE = '_'.toInt()
 
-private const val hyphen = '-'.toInt()
-private const val equalSign = '='.toInt()
-private const val verticalBar = '|'.toInt()
-private const val underscore = '_'.toInt()
-
-private val underscoreReplacers = listOf(
+private val UNDERSCORE_REPLACERS = listOf(
     '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
 ).map(Char::toInt)
 
-private val charClassMap = mapOf(
+private val CHAR_CLASS_MAP = mapOf(
     '|' to 1,
     '/' to 2, '\\' to 2,
     '[' to 3, ']' to 3,
@@ -104,7 +103,7 @@ private val charClassMap = mapOf(
     '<' to 6, '>' to 6,
 ).mapKeys { it.key.toInt() }
 
-private val pairs = mapOf(
+private val PAIRS = mapOf(
     '[' to ']',
     ']' to '[',
     '{' to '}',
@@ -115,7 +114,7 @@ private val pairs = mapOf(
     key.toInt() to value.toInt()
 }
 
-private val xPairs = mapOf(
+private val X_PAIRS = mapOf(
     Pair('/', '\\') to '|',
     Pair('\\', '/') to 'Y',
     Pair('>', '<') to 'X'
