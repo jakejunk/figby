@@ -1,14 +1,11 @@
 package font
 
-import helpers.cartesianProduct
-import helpers.fakeFontWithHorizontalRules
-import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import helpers.*
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.property.checkAll
 
-class TryHorizontalSmushTests {
+class TryHorizontalSmushTests : ShouldSpec({
     /**
      * Calculating universal smushing for the horizontal axis follows these rules:
      * 1. Hardblanks win over whitespace
@@ -17,246 +14,184 @@ class TryHorizontalSmushTests {
      *
      * Occurs when no smushing rules are specified.
      */
-    class Universal {
-        private val hardblank = '$'.toInt()
-        private val font = fakeFontWithHorizontalRules(hardblank)
+    context("No rules (universal)") {
+        val hardblank = '$'.toInt()
+        val font = fakeFontWithHorizontalRules(hardblank)
 
-        @Test
-        fun `trySmush returns hardblank when given hardblank and whitespace`() {
+        should("return hardblank when given hardblank and whitespace") {
             val whitespace = ' '.toInt()
 
-            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, whitespace))
-            assertEquals(hardblank, font.tryHorizontalSmush(whitespace, hardblank))
+            font.tryHorizontalSmush(hardblank, whitespace) shouldBe hardblank
+            font.tryHorizontalSmush(whitespace, hardblank) shouldBe hardblank
         }
 
-        @Test
-        fun `trySmush returns visible character when given visible character and whitespace`() {
+        should("return visible character when given visible character and whitespace") {
             val visible = 'j'.toInt()
             val whitespace = ' '.toInt()
 
-            assertEquals(visible, font.tryHorizontalSmush(visible, whitespace))
-            assertEquals(visible, font.tryHorizontalSmush(whitespace, visible))
+            font.tryHorizontalSmush(visible, whitespace) shouldBe visible
+            font.tryHorizontalSmush(whitespace, visible) shouldBe visible
         }
 
-        @Test
-        fun `trySmush returns visible character when given visible character and hardblank`() {
+        should("return visible character when given visible character and hardblank") {
             val visible = 'j'.toInt()
 
-            assertEquals(visible, font.tryHorizontalSmush(visible, hardblank))
-            assertEquals(visible, font.tryHorizontalSmush(hardblank, visible))
+            font.tryHorizontalSmush(visible, hardblank) shouldBe visible
+            font.tryHorizontalSmush(hardblank, visible) shouldBe visible
         }
 
-        @Test
-        fun `trySmush returns latter character when both inputs are whitespace`() {
+        should("return latter character when both inputs are whitespace") {
             val left = ' '.toInt()
             val right = '\t'.toInt()
 
-            assertEquals(right, font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(left, right) shouldBe right
         }
 
-        @Test
-        fun `trySmush returns hardblank when both inputs are hardblanks`() {
-            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))
+        should("return hardblank when both inputs are hardblanks") {
+            font.tryHorizontalSmush(hardblank, hardblank) shouldBe hardblank
         }
 
-        @Test
-        fun `trySmush returns latter character when both inputs are visible characters`() {
+        should("return latter character when both inputs are visible characters") {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
 
-            assertEquals(right, font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(left, right) shouldBe right
         }
     }
 
-    class EqualCharacter {
-        private val hardblank = '$'.toInt()
-        private val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.EqualCharacter)
+    context("Equal character") {
+        val hardblank = '$'.toInt()
+        val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.EqualCharacter)
 
-        @Test
-        fun `trySmush returns left character when left and right are equal`() {
+        should("return left character when left and right are equal") {
             val expected = 'j'.toInt()
 
-            assertEquals(expected, font.tryHorizontalSmush(expected, expected))
+            font.tryHorizontalSmush(expected, expected) shouldBe expected
         }
 
-        @Test
-        fun `trySmush returns null when left and right are not equal`() {
+        should("return null when left and right are not equal") {
             val left = 'j'.toInt()
             val right = 'k'.toInt()
 
-            assertNull(font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(left, right) shouldBe null
         }
 
-        @Test
-        fun `trySmush returns null when left and right both equal the hardblank`() {
-            assertNull(font.tryHorizontalSmush(hardblank, hardblank))
+        should("return null when left and right both equal the hardblank") {
+            font.tryHorizontalSmush(hardblank, hardblank) shouldBe null
         }
     }
 
-    class Underscore {
-        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Underscore)
-        private val underscoreReplacers = listOf(
-            '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
-        ).map { it.toInt() }
+    context("Underscore") {
+        val underscore = '_'.toInt()
+        val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Underscore)
 
-        @TestFactory
-        fun `trySmush returns correct character when smushed with an underscore`() = underscoreReplacers
-            .map { input ->
-                DynamicTest.dynamicTest("'$input' can smush '_'") {
-                    val underscore = '_'.toInt()
+        // Underscore replacers are |, /, \, [, ], {, }, (, ), < and >
+        should("return the provided underscore replacer when smushed with an underscore") {
+            checkAll(underscoreReplacers) { replacer ->
+                font.tryHorizontalSmush(replacer, underscore) shouldBe replacer
+                font.tryHorizontalSmush(underscore, replacer) shouldBe replacer
+            }
+        }
 
-                    assertEquals(input, font.tryHorizontalSmush(input, underscore))
-                    assertEquals(input, font.tryHorizontalSmush(underscore, input))
+        should("return null for any other character combination") {
+            checkAll(notUnderscoreReplacers) { other ->
+                font.tryHorizontalSmush(other, underscore) shouldBe null
+                font.tryHorizontalSmush(underscore, other) shouldBe null
+            }
+        }
+    }
+
+    context("Hierarchy") {
+        val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Hierarchy)
+
+        should("smush correctly when both inputs are part of a class") {
+            checkAll(charClassMembers, charClassMembers) { (left, leftClass), (right, rightClass) ->
+                val result = font.tryHorizontalSmush(left, right)
+
+                when {
+                    leftClass > rightClass -> result shouldBe left
+                    leftClass < rightClass -> result shouldBe right
+                    else -> result shouldBe null
                 }
             }
+        }
 
-        @Test
-        fun `trySmush returns null for any other character combination`() {
-            val underscore = '_'.toInt()
-            val other = 'j'.toInt()
-
-            assertNull(font.tryHorizontalSmush(underscore, other))
+        should("return null if any input is not part of a class") {
+            checkAll(charClassMembers, notCharClassMembers) { (member, _), random ->
+                font.tryHorizontalSmush(random, member) shouldBe null
+                font.tryHorizontalSmush(member, random) shouldBe null
+                font.tryHorizontalSmush(random, random) shouldBe null
+            }
         }
     }
 
-    class Hierarchy {
-        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.Hierarchy)
-        private val charClassMap = mapOf(
-            '|' to 1,
-            '/' to 2, '\\' to 2,
-            '[' to 3, ']' to 3,
-            '{' to 4, '}' to 4,
-            '(' to 5, ')' to 5,
-            '<' to 6, '>' to 6,
-        ).mapKeys { it.key.toInt() }
-
-        @TestFactory
-        fun `trySmush where left and right are part of a class`() = charClassMap.keys
-            .toList()
-            .let { keys ->
-                cartesianProduct(keys, keys) { left, right ->
-                    val leftClass = charClassMap.getValue(left)
-                    val rightClass = charClassMap.getValue(right)
-                    val result = font.tryHorizontalSmush(left, right)
-
-                    when {
-                        leftClass > rightClass -> DynamicTest.dynamicTest("$left can smush $right") {
-                            assertEquals(left, result)
-                        }
-                        leftClass < rightClass -> DynamicTest.dynamicTest("$left can be smushed by $right") {
-                            assertEquals(right, result)
-                        }
-                        else -> DynamicTest.dynamicTest("$left cannot smush $right") {
-                            assertNull(result)
-                        }
-                    }
-                }
-            }.toList()
-
-        @Test
-        fun `trySmush returns null if any input is not part of a class`() {
-            val randomChar = 'j'.toInt()
-            val classMember = '/'.toInt()
-
-            assertNull(font.tryHorizontalSmush(randomChar, classMember))
-            assertNull(font.tryHorizontalSmush(classMember, randomChar))
-            assertNull(font.tryHorizontalSmush(randomChar, randomChar))
-        }
-    }
-
-    class OppositePair {
-        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.OppositePair)
-        private val pairs = mapOf(
-            '[' to ']',
-            ']' to '[',
-            '{' to '}',
-            '}' to '{',
-            '(' to ')',
-            ')' to '(',
-        ).entries.associate { (key, value) ->
-            key.toInt() to value.toInt()
-        }
+    context("Opposite pair") {
+        val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.OppositePair)
 
         // Fun fact: This function will not compile if the signature contains a '|' character
-        @TestFactory
-        fun `trySmush returns vertical bar when left and right are opposing brackets, braces, or parenthesis`() = pairs
-            .map { (left, right) ->
-                DynamicTest.dynamicTest("'$left' can smush '$right'") {
-                    val expected = '|'.toInt()
-
-                    assertEquals(expected, font.tryHorizontalSmush(left, right))
-                }
+        should("return vertical bar when left and right are opposing brackets, braces, or parenthesis") {
+            checkAll(oppositePairs) { (left, right) ->
+                font.tryHorizontalSmush(left, right) shouldBe '|'.toInt()
             }
+        }
 
-        @Test
-        fun `trySmush returns null when left and right do not form a valid pair`() {
-            val left = '{'.toInt()
-            val right = ']'.toInt()
-
-            assertNull(font.tryHorizontalSmush(left, right))
+        should("return null when left and right do not form a valid pair") {
+            checkAll(notOppositePairs) { (left, right) ->
+                font.tryHorizontalSmush(left, right) shouldBe null
+            }
         }
     }
 
-    class BigX {
-        private val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.BigX)
+    context("Big X") {
+        val forwardSlash = '/'.toInt()
+        val backslash = '\\'.toInt()
+        val greaterThan = '>'.toInt()
+        val lessThan = '<'.toInt()
+        val font = fakeFontWithHorizontalRules(0, HorizontalSmushingRule.BigX)
 
-        @Test
-        fun `trySmush returns vertical bar when left is forward slash and right is backslash`() {
-            val expected = '|'.toInt()
-            val left = '/'.toInt()
-            val right = '\\'.toInt()
+        should("return vertical bar when left is forward slash and right is backslash") {
+            val verticalBar = '|'.toInt()
 
-            assertEquals(expected, font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(forwardSlash, backslash) shouldBe verticalBar
         }
 
-        @Test
-        fun `trySmush returns 'Y' when left is backslash and right is forward slash`() {
-            val expected = 'Y'.toInt()
-            val left = '\\'.toInt()
-            val right = '/'.toInt()
+        should("return 'Y' when left is backslash and right is forward slash") {
+            val letterY = 'Y'.toInt()
 
-            assertEquals(expected, font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(backslash, forwardSlash) shouldBe letterY
         }
 
-        @Test
-        fun `trySmush returns 'X' when left is greater-than and right is less-than`() {
-            val expected = 'X'.toInt()
-            val left = '>'.toInt()
-            val right = '<'.toInt()
+        should("return 'X' when left is greater-than and right is less-than") {
+            val letterX = 'X'.toInt()
 
-            assertEquals(expected, font.tryHorizontalSmush(left, right))
+            font.tryHorizontalSmush(greaterThan, lessThan) shouldBe letterX
         }
 
-        @Test
-        fun `trySmush returns null when left and right do not form a valid pair`() {
-            val left = '<'.toInt()
-            val right = '>'.toInt()
-
-            assertNull(font.tryHorizontalSmush(left, right))
+        should("return null when left and right do not form a valid pair") {
+            font.tryHorizontalSmush(lessThan, greaterThan) shouldBe null
         }
     }
 
-    class Hardblank {
-        private val hardblank = '$'.toInt()
-        private val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.Hardblank)
+    context("Hardblank") {
+        val hardblank = '$'.toInt()
+        val font = fakeFontWithHorizontalRules(hardblank, HorizontalSmushingRule.Hardblank)
 
-        @Test
-        fun `trySmush returns hardblank when all inputs are hardblanks`() {
-            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))
+        should("return hardblank when all inputs are hardblanks") {
+            font.tryHorizontalSmush(hardblank, hardblank) shouldBe hardblank
         }
 
-        @Test
-        fun `trySmush returns null when given any other combination of inputs`() {
+        should("return null when given any other combination of inputs") {
             val randomChar = 'j'.toInt()
 
-            assertNull(font.tryHorizontalSmush(randomChar, hardblank))
-            assertNull(font.tryHorizontalSmush(hardblank, randomChar))
+            font.tryHorizontalSmush(randomChar, hardblank) shouldBe null
+            font.tryHorizontalSmush(hardblank, randomChar) shouldBe null
         }
     }
 
-    class MultipleRules {
-        private val hardblank = '$'.toInt()
-        private val font = fakeFontWithHorizontalRules(hardblank,
+    context("Multiple rules") {
+        val hardblank = '$'.toInt()
+        val font = fakeFontWithHorizontalRules(
+            hardblank,
             HorizontalSmushingRule.EqualCharacter,
             HorizontalSmushingRule.Underscore,
             HorizontalSmushingRule.Hierarchy,
@@ -265,19 +200,18 @@ class TryHorizontalSmushTests {
             HorizontalSmushingRule.Hardblank
         )
 
-        @Test
-        fun `trySmush returns values when given any set of rule-matching inputs`() {
+        should("return correct values when given any set of rule-matching inputs") {
             val lessThan = '<'.toInt()
             val greaterThan = '>'.toInt()
             val openParen = '('.toInt()
             val closeParen = ')'.toInt()
 
-            assertEquals(lessThan, font.tryHorizontalSmush(lessThan, lessThan))       // Equal character
-            assertEquals(lessThan, font.tryHorizontalSmush('_'.toInt(), lessThan))    // Underscore
-            assertEquals(lessThan, font.tryHorizontalSmush(openParen, lessThan))      // Hierarchy
-            assertEquals('|'.toInt(), font.tryHorizontalSmush(openParen, closeParen)) // Opposite pair
-            assertEquals('X'.toInt(), font.tryHorizontalSmush(greaterThan, lessThan)) // Big X
-            assertEquals(hardblank, font.tryHorizontalSmush(hardblank, hardblank))    // Hardblank
+            font.tryHorizontalSmush(lessThan, lessThan) shouldBe lessThan       // Equal character
+            font.tryHorizontalSmush('_'.toInt(), lessThan) shouldBe lessThan    // Underscore
+            font.tryHorizontalSmush(openParen, lessThan) shouldBe lessThan      // Hierarchy
+            font.tryHorizontalSmush(openParen, closeParen) shouldBe '|'.toInt() // Opposite pair
+            font.tryHorizontalSmush(greaterThan, lessThan) shouldBe 'X'.toInt() // Big X
+            font.tryHorizontalSmush(hardblank, hardblank) shouldBe hardblank    // Hardblank
         }
     }
-}
+})
