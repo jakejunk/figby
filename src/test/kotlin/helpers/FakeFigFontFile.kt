@@ -2,6 +2,13 @@ package helpers
 
 import java.io.InputStream
 
+fun fakeFigFontFileWithLayout(
+    oldLayout: Int = -1,
+    fullLayout: Int? = null
+): InputStream {
+    return fakeFigFontFile("flf2a\$ 1 1 2 $oldLayout 1 0 ${fullLayout ?: ""}", "A comment", 1, 1)
+}
+
 fun fakeFigFontFile(
     headerLine: String,
     comments: String,
@@ -24,13 +31,11 @@ fun fakeFigFontFile(
     return fakeFileContents.byteInputStream()
 }
 
-fun fakeFigFontChar(codePoint: Int, width: Int, height: Int): String {
-    val char = codePoint.toChar()
-
+private fun fakeFigFontChar(codePoint: Int, width: Int, height: Int): String {
     return StringBuilder().apply {
         repeat(height) {
             repeat(width) {
-                append(char)
+                appendCodePoint(codePoint)
             }
 
             append('@')
