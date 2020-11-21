@@ -168,18 +168,34 @@ class ParseFigFontTests : ShouldSpec({
         }
     }
 
-    should("throw exception when given non-numeric print direction parameter") {
-        val fontFile = fakeFigFontFile("flf2a\$ 1 1 2 -1 1 printDirection 1", "A comment", 1, 1)
+    should("return left-to-right font when print direction parameter is 0") {
+        val printDirectionParam = 0
+        val fontFile = fakeFigFontFile("flf2a\$ 1 1 2 -1 1 $printDirectionParam 1", "A comment", 1, 1)
+        val font = parseFigFont(fontFile)
 
-        shouldThrow<Exception> {
-            parseFigFont(fontFile)
-        }
+        font.printDirection shouldBe PrintDirection.LeftToRight
+    }
+
+    should("return right-to-left font when print direction parameter is 1") {
+        val printDirectionParam = 1
+        val fontFile = fakeFigFontFile("flf2a\$ 1 1 2 -1 1 $printDirectionParam 1", "A comment", 1, 1)
+        val font = parseFigFont(fontFile)
+
+        font.printDirection shouldBe PrintDirection.RightToLeft
     }
 
     should("throw exception when given invalid print direction parameter") {
         // Valid values are 0 and 1
         val printDirection = 2
         val fontFile = fakeFigFontFile("flf2a\$ 1 1 2 -1 1 $printDirection 1", "A comment", 1, 1)
+
+        shouldThrow<Exception> {
+            parseFigFont(fontFile)
+        }
+    }
+
+    should("throw exception when given non-numeric print direction parameter") {
+        val fontFile = fakeFigFontFile("flf2a\$ 1 1 2 -1 1 printDirection 1", "A comment", 1, 1)
 
         shouldThrow<Exception> {
             parseFigFont(fontFile)

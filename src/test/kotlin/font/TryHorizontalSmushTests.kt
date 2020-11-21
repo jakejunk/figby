@@ -1,6 +1,7 @@
 package font
 
 import helpers.*
+import helpers.generators.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll

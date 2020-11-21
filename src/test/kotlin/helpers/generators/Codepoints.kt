@@ -1,8 +1,9 @@
-package helpers
+package helpers.generators
 
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.*
 import io.kotest.property.exhaustive.exhaustive
+import java.lang.Exception
 
 private val underscoreReplacerList = listOf(
     '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
@@ -34,9 +35,9 @@ private val oppositePairList = listOf(
     ')' to '(',
 ).map { (key, value) -> key.toInt() to value.toInt() }
 val oppositePairs = oppositePairList.exhaustive()
-val notOppositePairs = arbitrary { rs ->
-    val left = Arb.codepoints().sample(rs)
-    val right = Arb.codepoints().sample(rs)
+val notOppositePairs = arbitrary { source ->
+    val left = Arb.codepoints().sample(source)
+    val right = Arb.codepoints().sample(source)
 
     left.value.value to right.value.value // Ew
 }.filterNot { it in oppositePairList }

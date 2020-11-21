@@ -1,6 +1,7 @@
 package font
 
 import helpers.*
+import helpers.generators.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
@@ -174,7 +175,8 @@ class TryVerticalSmushTests : ShouldSpec({
     }
 
     context("Multiple rules") {
-        val font = fakeFontWithVerticalRules(0,
+        val font = fakeFontWithVerticalRules(
+            0,
             VerticalSmushingRule.EqualCharacter,
             VerticalSmushingRule.Underscore,
             VerticalSmushingRule.Hierarchy,
