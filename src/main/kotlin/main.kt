@@ -1,7 +1,7 @@
 import figure.FigureBuilder
 import font.parseFigFont
 
-fun main(args: Array<String>) {
+internal fun main(args: Array<String>) {
     val fontFile = ClassLoader
         .getSystemClassLoader()
         .getResource("standard.flf")

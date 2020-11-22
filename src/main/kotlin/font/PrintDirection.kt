@@ -1,11 +1,11 @@
-package layout
+package font
 
-enum class PrintDirection(val value: Int) {
+public enum class PrintDirection(public val value: Int) {
     LeftToRight(0),
     RightToLeft(1)
 }
 
-fun parsePrintDirection(printDirection: Int): PrintDirection {
+internal fun parsePrintDirection(printDirection: Int): PrintDirection {
     return when (printDirection) {
         0 -> PrintDirection.LeftToRight
         1 -> PrintDirection.RightToLeft

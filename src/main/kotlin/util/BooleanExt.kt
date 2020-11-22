@@ -1,6 +1,6 @@
 package util
 
-fun Boolean.toInt(): Int {
+public fun Boolean.toInt(): Int {
     return when {
         this -> 1
         else -> 0

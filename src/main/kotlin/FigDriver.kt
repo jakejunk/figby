@@ -1,9 +1,12 @@
 import font.FigFont
 
-class FigDriver(
+/**
+ * TODO
+ */
+public class FigDriver(
     private val font: FigFont
 ) {
-    fun convert(text: String): String {
+    public fun convert(text: String): String {
         TODO()
     }
 }
