@@ -6,10 +6,7 @@ import layout.PrintDirection
 import java.io.BufferedReader
 import java.io.InputStream
 
-/**
- * Creates a [FigFont] from the given font file (`.flf`).
- */
-public fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
+internal fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
     val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
     val header = parseFigFontHeader(headerLine)
     val printDirection = parsePrintDirection(header.printDirection)

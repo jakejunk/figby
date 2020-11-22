@@ -1,4 +1,5 @@
 import figure.FigureBuilder
+import font.FigFont
 import font.parse.parseFigFont
 
 internal fun main(args: Array<String>) {
@@ -7,7 +8,7 @@ internal fun main(args: Array<String>) {
         .getResource("standard.flf")
         ?.openStream()!!
 
-    val font = parseFigFont(fontFile)
+    val font = FigFont.fromFile(fontFile)
     val builder = FigureBuilder(font)
 
     builder.append("Hello world")

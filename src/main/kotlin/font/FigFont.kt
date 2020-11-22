@@ -1,6 +1,8 @@
 package font
 
+import font.parse.parseFigFont
 import layout.*
+import java.io.InputStream
 
 /**
  * Describes the layout and graphical arrangement of sub-characters representing [FigChar]s.
@@ -89,6 +91,15 @@ public data class FigFont internal constructor(
      */
     public fun tryVerticalSmush(top: Int, bottom: Int): Int? {
         return layout.tryVerticalSmush(top, bottom, hardblank)
+    }
+
+    public companion object {
+        /**
+         * Creates a [FigFont] from the given font file (`.flf`).
+         */
+        public fun fromFile(fontFile: InputStream): FigFont {
+            return parseFigFont(fontFile)
+        }
     }
 }
 
