@@ -2,7 +2,6 @@ package figure
 
 import font.FigCharLine
 import font.FigFont
-import util.toInt
 
 internal class FigureLineBuilder {
     private val subChars = mutableListOf<Int>()
@@ -16,7 +15,10 @@ internal class FigureLineBuilder {
     fun getSmushingAdjustment(figCharLine: FigCharLine, font: FigFont): Pair<Int, Int?> {
         val kerningAdjustment = getKerningAdjustment(figCharLine)
         val smushedSubChar = getSmushedSubCharacter(figCharLine, font)
-        val smushAdjustment = (smushedSubChar != null).toInt()
+        val smushAdjustment = when (smushedSubChar) {
+            null -> 0
+            else -> 1
+        }
 
         return Pair(kerningAdjustment + smushAdjustment, smushedSubChar)
     }
