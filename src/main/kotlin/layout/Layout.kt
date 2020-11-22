@@ -1,9 +1,8 @@
-package font.internal
+package layout
 
-import font.HorizontalSmushingRule
-import font.VerticalSmushingRule
-
-internal class FigFontSmusher(
+internal class Layout(
+    val horizontalLayout: HorizontalLayoutMode,
+    val verticalLayout: VerticalLayoutMode,
     val horizontalRules: List<HorizontalSmushingRule> = emptyList(),
     val verticalRules: List<VerticalSmushingRule> = emptyList()
 ) {
@@ -39,15 +38,3 @@ internal class FigFontSmusher(
     }
 }
 
-internal fun parseSmushingRules(layoutMask: Int): FigFontSmusher {
-    val horizontalRules = HorizontalSmushingRule.values()
-        .filter { layoutMask and it.bitMask == it.bitMask }
-
-    val verticalRules = VerticalSmushingRule.values()
-        .filter { layoutMask and it.bitMask == it.bitMask }
-
-    return FigFontSmusher(
-        horizontalRules = horizontalRules,
-        verticalRules = verticalRules
-    )
-}

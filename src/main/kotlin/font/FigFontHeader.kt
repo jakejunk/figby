@@ -1,4 +1,4 @@
-package font.internal
+package font
 
 internal class FigFontHeader(
     val hardblank: Int,

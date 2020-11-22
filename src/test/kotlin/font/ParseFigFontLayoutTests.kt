@@ -1,5 +1,6 @@
 package font
 
+import font.parse.parseFigFont
 import helpers.fakeFigFontFileWithLayout
 import helpers.generators.oldLayoutsWithPattern
 import helpers.generators.fullLayoutsWithPattern
@@ -7,6 +8,10 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
+import layout.HorizontalLayoutMode
+import layout.HorizontalSmushingRule
+import layout.VerticalLayoutMode
+import layout.VerticalSmushingRule
 
 class ParseFigFontLayoutTests : ShouldSpec({
     context("Full layout") {

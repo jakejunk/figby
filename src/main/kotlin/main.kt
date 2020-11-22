@@ -1,5 +1,5 @@
 import figure.FigureBuilder
-import font.parseFigFont
+import font.parse.parseFigFont
 
 internal fun main(args: Array<String>) {
     val fontFile = ClassLoader

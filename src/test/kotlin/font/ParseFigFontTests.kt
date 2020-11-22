@@ -1,11 +1,15 @@
 package font
 
+import font.parse.parseFigFont
 import helpers.fakeFigFontFile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import layout.HorizontalLayoutMode
+import layout.HorizontalSmushingRule
+import layout.PrintDirection
 import java.lang.Exception
 
 class ParseFigFontTests : ShouldSpec({
