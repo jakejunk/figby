@@ -5,12 +5,15 @@ import font.FigFont
 import font.HorizontalLayoutMode
 import util.toInt
 
-class FigureBuilder(
+/**
+ * TODO: Should this also be internal?
+ */
+public class FigureBuilder(
     private val font: FigFont
 ) {
     private val lines = Array(font.height) { FigureLineBuilder() }
 
-    fun append(text: String) {
+    public fun append(text: String) {
         val horizontalLayout = font.horizontalLayout
         val codePoints = text.codePoints()
 
@@ -86,7 +89,7 @@ class FigureBuilder(
         return Pair(smallestAdjustment, replacements)
     }
 
-    fun buildFigure(): String {
+    public fun buildFigure(): String {
         val hardblank = font.hardblank
 
         return lines

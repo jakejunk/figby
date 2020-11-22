@@ -8,7 +8,10 @@ import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.streams.toList
 
-data class FigFont internal constructor(
+/**
+ * Describes the layout and graphical arrangement of sub-characters representing [FigChar]s.
+ */
+public data class FigFont internal constructor(
     /**
      * The code point representing the hardblank character for this font.
      */
@@ -45,28 +48,56 @@ data class FigFont internal constructor(
      */
     val comments: String,
     private val figFontSmusher: FigFontSmusher,
-    private val chars: Map<Int, FigChar>
+    private val figCharMap: Map<Int, FigChar>
 ) {
+    /**
+     * The horizontal smushing rules for this font.
+     * @see HorizontalSmushingRule
+     * @see tryHorizontalSmush
+     */
     val horizontalSmushingRules: List<HorizontalSmushingRule>
         get() = figFontSmusher.horizontalRules
 
+    /**
+     * The vertical smushing rules for this font.
+     * @see VerticalSmushingRule
+     * @see tryVerticalSmush
+     */
     val verticalSmushingRules: List<VerticalSmushingRule>
         get() = figFontSmusher.verticalRules
 
-    operator fun get(charCode: Int): FigChar? {
-        return chars[charCode] ?: chars[0]
+    /**
+     * Returns the [FigChar] associated with the provided code point.
+     * If [codePoint] is not represented in this font, the FigChar for
+     * code point `0` will be returned, if present.
+     */
+    public operator fun get(codePoint: Int): FigChar? {
+        return figCharMap[codePoint] ?: figCharMap[0]
     }
 
-    fun tryHorizontalSmush(left: Int, right: Int): Int? {
+    /**
+     * Attempts to smush [left] and [right] in accordance with this font's [horizontalSmushingRules],
+     * returning the smushed code point if successful.
+     * @see HorizontalSmushingRule
+     */
+    public fun tryHorizontalSmush(left: Int, right: Int): Int? {
         return figFontSmusher.tryHorizontalSmush(left, right, hardblank)
     }
 
-    fun tryVerticalSmush(top: Int, bottom: Int): Int? {
+    /**
+     * Attempts to smush [top] and [bottom] in accordance with this font's [verticalSmushingRules],
+     * returning the smushed code point if successful.
+     * @see VerticalSmushingRule
+     */
+    public fun tryVerticalSmush(top: Int, bottom: Int): Int? {
         return figFontSmusher.tryVerticalSmush(top, bottom, hardblank)
     }
 }
 
-fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
+/**
+ * Creates a [FigFont] from the given font file (`.flf`).
+ */
+public fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
     val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
     val header = parseFigFontHeader(headerLine)
     val printDirection = parsePrintDirection(header.printDirection)
@@ -88,7 +119,7 @@ fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use
         printDirection = printDirection,
         comments = comments,
         figFontSmusher = layout.figFontSmusher,
-        chars = chars
+        figCharMap = chars
     )
 }
 

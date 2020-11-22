@@ -1,6 +1,6 @@
 package util
 
-fun <T> List<T>.leading(element: T): Int {
+public fun <T> List<T>.leading(element: T): Int {
     var leading = 0
     val iterator = this.listIterator(0)
     while (iterator.hasNext()) {
@@ -12,7 +12,7 @@ fun <T> List<T>.leading(element: T): Int {
     return leading
 }
 
-fun <T> List<T>.trailing(element: T): Int {
+public fun <T> List<T>.trailing(element: T): Int {
     var trailing = 0
     val iterator = this.listIterator(size)
     while (iterator.hasPrevious()) {

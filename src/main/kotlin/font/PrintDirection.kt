@@ -1,6 +1,6 @@
 package font
 
-enum class PrintDirection(val value: Int) {
+public enum class PrintDirection(public val value: Int) {
     LeftToRight(0),
     RightToLeft(1)
 }

@@ -1,12 +1,23 @@
 package font
 
-enum class HorizontalSmushingRule(val bitMask: Int) {
+/**
+ * Defines how to horizontally smush [FigChar] sub-characters.
+ */
+public enum class HorizontalSmushingRule(public val bitMask: Int) {
+    /**
+     * Combines two sub-characters into one if they are equal. Does not smush hardblanks.
+     */
     EqualCharacter(1) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? = when {
             left == right && left != hardblank -> left
             else -> null
         }
     },
+
+    /**
+     * Underscore sub-characters will be replaced by any of the following:
+     * `|`, `/`, `\`, `[`, `]`, `{`, `}`, `(`, `)`, `<` or `>`.
+     */
     Underscore(2) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? = when {
             left == UNDERSCORE && right in UNDERSCORE_REPLACERS -> right
@@ -14,6 +25,11 @@ enum class HorizontalSmushingRule(val bitMask: Int) {
             else -> null
         }
     },
+
+    /**
+     * A hierarchy of six classes is used: `|`, `/\`, `[]`, `{}`, `()`, and `<>`.
+     * When two sub-characters are from different classes, the one from the latter class will be used.
+     */
     Hierarchy(4) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? {
             val leftClass = CHAR_CLASS_MAP[left] ?: return null
@@ -25,17 +41,33 @@ enum class HorizontalSmushingRule(val bitMask: Int) {
             }
         }
     },
+
+    /**
+     * Returns a vertical bar (`|`) if the given inputs are
+     * opposing brackets (`[]` or `][`), braces (`{}` or `}{`) or parentheses (`()` or `)(`).
+     */
     OppositePair(8) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? = when (PAIRS[left]) {
             right -> VERTICAL_BAR
             else -> null
         }
     },
+
+    /**
+     * Combines sub-characters as follows:
+     * - `/ + \ = |`
+     * - `\ + / = Y`
+     * - `> + < = X`
+     */
     BigX(16) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? {
             return X_PAIRS[Pair(left, right)]
         }
     },
+
+    /**
+     * Combines two hardblanks into one.
+     */
     Hardblank(32) {
         override fun apply(left: Int, right: Int, hardblank: Int): Int? = when {
             left == hardblank && right == hardblank -> hardblank
@@ -43,13 +75,24 @@ enum class HorizontalSmushingRule(val bitMask: Int) {
         }
     };
 
-    abstract fun apply(left: Int, right: Int, hardblank: Int): Int?
+    public abstract fun apply(left: Int, right: Int, hardblank: Int): Int?
 }
 
-enum class VerticalSmushingRule(val bitMask: Int) {
+/**
+ * Defines how to vertically smush [FigChar] sub-characters.
+ */
+public enum class VerticalSmushingRule(public val bitMask: Int) {
+    /**
+     * Combines two sub-characters into one if they are equal.
+     */
     EqualCharacter(256) {
         override fun apply(top: Int, bottom: Int): Int? = if (top == bottom) top else null
     },
+
+    /**
+     * Underscore sub-characters will be replaced by any of the following:
+     * `|`, `/`, `\`, `[`, `]`, `{`, `}`, `(`, `)`, `<` or `>`.
+     */
     Underscore(512) {
         override fun apply(top: Int, bottom: Int): Int? = when {
             top == UNDERSCORE && bottom in UNDERSCORE_REPLACERS -> bottom
@@ -57,6 +100,11 @@ enum class VerticalSmushingRule(val bitMask: Int) {
             else -> null
         }
     },
+
+    /**
+     * A hierarchy of six classes is used: `|`, `/\`, `[]`, `{}`, `()`, and `<>`.
+     * When two sub-characters are from different classes, the one from the latter class will be used.
+     */
     Hierarchy(1024) {
         override fun apply(top: Int, bottom: Int): Int? {
             val topClass = CHAR_CLASS_MAP[top] ?: return null
@@ -68,6 +116,11 @@ enum class VerticalSmushingRule(val bitMask: Int) {
             }
         }
     },
+
+    /**
+     * Combines pairs of `-` and `_` into a single `=`.
+     * Pairs of identical inputs (e.g. two `-` sub-characters) will not be smushed by this rule.
+     */
     HorizontalLine(2048) {
         override fun apply(top: Int, bottom: Int): Int? = when {
             top == HYPHEN && bottom == UNDERSCORE -> EQUAL_SIGN
@@ -75,6 +128,11 @@ enum class VerticalSmushingRule(val bitMask: Int) {
             else -> null
         }
     },
+
+    /**
+     * Combines multiple `|` sub-characters into one.
+     * Continues until any sub-characters other than `|` would have to be smushed.
+     */
     VerticalLine(4096) {
         override fun apply(top: Int, bottom: Int): Int? = when {
             top == VERTICAL_BAR && bottom == VERTICAL_BAR -> VERTICAL_BAR
@@ -82,7 +140,7 @@ enum class VerticalSmushingRule(val bitMask: Int) {
         }
     };
 
-    abstract fun apply(top: Int, bottom: Int): Int?
+    public abstract fun apply(top: Int, bottom: Int): Int?
 }
 
 private const val HYPHEN = '-'.toInt()

@@ -3,8 +3,12 @@ package font
 import util.leading
 import util.trailing
 
-data class FigChar internal constructor(
-    val lines: List<FigCharLine>
+/**
+ * An organized collection of code points (aka sub-characters)
+ * representing a single character in a [FigFont].
+ */
+public data class FigChar internal constructor(
+    internal val lines: List<FigCharLine>
 ) {
     val width: Int
         get() = lines[0].length
@@ -13,7 +17,7 @@ data class FigChar internal constructor(
         get() = lines.size
 }
 
-class FigCharLine {
+internal class FigCharLine {
     val leadingSpaces: Int
     val trailingSpaces: Int
     val trimmedCodePoints: List<Int>

@@ -42,5 +42,5 @@ private fun generateFakeFigFont(
     printDirection = printDirection,
     comments = comments,
     figFontSmusher = figFontSmusher,
-    chars = chars
+    figCharMap = chars
 )

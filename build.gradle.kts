@@ -11,6 +11,10 @@ val gitVersion: groovy.lang.Closure<String> by extra
 group = "dev.junker"
 version = gitVersion()
 
+kotlin {
+    explicitApi()
+}
+
 repositories {
     mavenCentral()
 }
