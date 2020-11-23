@@ -1,9 +1,8 @@
 package font
 
-import font.parse.parseFigFont
 import helpers.fakeFigFontFileWithLayout
-import helpers.generators.oldLayoutsWithPattern
 import helpers.generators.fullLayoutsWithPattern
+import helpers.generators.oldLayoutsWithPattern
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
@@ -18,7 +17,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have full-width layout when full layout param is 0") {
             val fullLayout = 0
             val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-            val font = parseFigFont(fontFile)
+            val font = FigFont.fromFile(fontFile)
 
             font.horizontalLayout shouldBe HorizontalLayoutMode.FullWidth
         }
@@ -26,7 +25,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal equal character smushing when full layout param has bit 0 enabled") {
             checkAll(fullLayoutsWithPattern(0b1)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.EqualCharacter
             }
@@ -35,7 +34,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal underscore smushing when full layout param has bit 1 enabled") {
             checkAll(fullLayoutsWithPattern(0b10)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Underscore
             }
@@ -44,7 +43,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal hierarchy smushing when full layout param has bit 2 enabled") {
             checkAll(fullLayoutsWithPattern(0b100)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Hierarchy
             }
@@ -53,7 +52,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have opposite pair smushing when full layout param has bit 3 enabled") {
             checkAll(fullLayoutsWithPattern(0b1000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.OppositePair
             }
@@ -62,7 +61,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have 'Big X' smushing when full layout param has bit 4 enabled") {
             checkAll(fullLayoutsWithPattern(0b10000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.BigX
             }
@@ -71,7 +70,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have hardblank smushing when full layout param has bit 5 enabled") {
             checkAll(fullLayoutsWithPattern(0b100000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Hardblank
             }
@@ -85,7 +84,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
                 )
             ) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalLayout shouldBe HorizontalLayoutMode.Kerning
             }
@@ -95,7 +94,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal smushing layout when full layout param has bits 6 and 7 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b11000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalLayout shouldBe HorizontalLayoutMode.Smushing
             }
@@ -104,7 +103,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal smushing layout when full layout param has bit 7 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b10000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalLayout shouldBe HorizontalLayoutMode.Smushing
             }
@@ -113,7 +112,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have vertical equal character smushing when full layout param has bit 8 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b100000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalSmushingRules shouldContain VerticalSmushingRule.EqualCharacter
             }
@@ -122,7 +121,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have vertical underscore smushing when full layout param has bit 9 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b1000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalSmushingRules shouldContain VerticalSmushingRule.Underscore
             }
@@ -131,7 +130,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have hierarchy underscore smushing when full layout param has bit 10 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b10000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalSmushingRules shouldContain VerticalSmushingRule.Hierarchy
             }
@@ -140,7 +139,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal line smushing when full layout param has bit 11 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b100000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalSmushingRules shouldContain VerticalSmushingRule.HorizontalLine
             }
@@ -149,7 +148,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have vertical line smushing when full layout param has bit 12 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b1000000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalSmushingRules shouldContain VerticalSmushingRule.VerticalLine
             }
@@ -163,7 +162,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
                 )
             ) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalLayout shouldBe VerticalLayoutMode.VerticalFitting
             }
@@ -173,7 +172,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have vertical smushing layout when full layout param has bits 13 and 14 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b110000000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalLayout shouldBe VerticalLayoutMode.Smushing
             }
@@ -182,7 +181,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have vertical smushing layout when full layout param has bit 14 enabled") {
             checkAll(fullLayoutsWithPattern(enabledMask = 0b100000000000000)) { fullLayout ->
                 val fontFile = fakeFigFontFileWithLayout(fullLayout = fullLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.verticalLayout shouldBe VerticalLayoutMode.Smushing
             }
@@ -193,7 +192,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have full-width layout when old layout param is -1") {
             val oldLayout = -1
             val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-            val font = parseFigFont(fontFile)
+            val font = FigFont.fromFile(fontFile)
 
             font.horizontalLayout shouldBe HorizontalLayoutMode.FullWidth
         }
@@ -201,7 +200,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have kerning layout when old layout param is 0") {
             val oldLayout = 0
             val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-            val font = parseFigFont(fontFile)
+            val font = FigFont.fromFile(fontFile)
 
             font.horizontalLayout shouldBe HorizontalLayoutMode.Kerning
         }
@@ -209,7 +208,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal equal character smushing when old layout param has bit 0 enabled") {
             checkAll(oldLayoutsWithPattern(0b1)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.EqualCharacter
             }
@@ -218,7 +217,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal underscore smushing when old layout param has bit 1 enabled") {
             checkAll(oldLayoutsWithPattern(0b10)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Underscore
             }
@@ -227,7 +226,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have horizontal hierarchy smushing when old layout param has bit 2 enabled") {
             checkAll(oldLayoutsWithPattern(0b100)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Hierarchy
             }
@@ -236,7 +235,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have opposite pair smushing when old layout param has bit 3 enabled") {
             checkAll(oldLayoutsWithPattern(0b1000)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.OppositePair
             }
@@ -245,7 +244,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have 'Big X' smushing when old layout param has bit 4 enabled") {
             checkAll(oldLayoutsWithPattern(0b10000)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.BigX
             }
@@ -254,7 +253,7 @@ class ParseFigFontLayoutTests : ShouldSpec({
         should("have hardblank smushing when old layout param has bit 5 enabled") {
             checkAll(oldLayoutsWithPattern(0b100000)) { oldLayout ->
                 val fontFile = fakeFigFontFileWithLayout(oldLayout = oldLayout)
-                val font = parseFigFont(fontFile)
+                val font = FigFont.fromFile(fontFile)
 
                 font.horizontalSmushingRules shouldContain HorizontalSmushingRule.Hardblank
             }
