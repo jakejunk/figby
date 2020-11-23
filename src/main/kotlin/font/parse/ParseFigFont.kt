@@ -2,6 +2,10 @@ package font.parse
 
 import font.FigFont
 import layout.PrintDirection
+import util.CARRIAGE_RETURN
+import util.NEW_LINE
+import util.NULL
+import util.SPACE
 import java.io.BufferedReader
 import java.io.InputStream
 
@@ -83,7 +87,7 @@ private fun parseSignature(signatureAndHardblank: String): Int {
     }
 
     return when (val hardblank = signatureParts[1].codePointAt(0)) {
-        32, 13, 10, 0 -> throw Exception("Invalid hardblank character")
+        SPACE, CARRIAGE_RETURN, NEW_LINE, NULL -> throw Exception("Invalid hardblank character")
         else -> hardblank
     }
 }

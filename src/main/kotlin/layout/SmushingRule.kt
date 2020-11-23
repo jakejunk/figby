@@ -1,5 +1,10 @@
 package layout
 
+import util.EQUAL_SIGN
+import util.HYPHEN
+import util.UNDERSCORE
+import util.VERTICAL_BAR
+
 /**
  * Defines how to horizontally smush [font.FigChar] sub-characters.
  */
@@ -142,11 +147,6 @@ public enum class VerticalSmushingRule {
 
     public abstract fun apply(top: Int, bottom: Int): Int?
 }
-
-private const val HYPHEN = '-'.toInt()
-private const val EQUAL_SIGN = '='.toInt()
-private const val VERTICAL_BAR = '|'.toInt()
-private const val UNDERSCORE = '_'.toInt()
 
 private val UNDERSCORE_REPLACERS = listOf(
     '|', '/', '\\', '[', ']', '{', '}', '(', ')', '<', '>'
