@@ -3,6 +3,7 @@ package figure
 import font.FigCharLine
 import font.FigFont
 import layout.HorizontalLayoutMode
+import kotlin.streams.toList
 
 internal class FigureBuilder(
     private val font: FigFont
@@ -11,18 +12,26 @@ internal class FigureBuilder(
 
     fun append(text: String) {
         val horizontalLayout = font.horizontalLayout
-        val codePoints = text.codePoints()
+        val linesToAppend = text.codePoints().toList().mapNotNull { codePoint ->
+            font[codePoint]?.lines
+        }
+
+        // TODO: Handling newlines
 
         when (horizontalLayout) {
-            HorizontalLayoutMode.FullWidth -> codePoints.forEach { appendFullWidth(it) }
-            HorizontalLayoutMode.Kerning -> codePoints.forEach { appendKerning(it) }
-            HorizontalLayoutMode.Smushing -> codePoints.forEach { appendSmushing(it) }
+            HorizontalLayoutMode.FullWidth -> linesToAppend.forEach { lines ->
+                appendFullWidth(lines)
+            }
+            HorizontalLayoutMode.Kerning -> linesToAppend.forEach { lines ->
+                appendKerning(lines)
+            }
+            HorizontalLayoutMode.Smushing -> linesToAppend.forEach { lines ->
+                appendSmushing(lines)
+            }
         }
     }
 
-    private fun appendFullWidth(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
-
+    private fun appendFullWidth(linesToAppend: List<FigCharLine>) {
         assert(lines.size == linesToAppend.size)
 
         lines.forEachIndexed { i, line ->
@@ -30,8 +39,7 @@ internal class FigureBuilder(
         }
     }
 
-    private fun appendKerning(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
+    private fun appendKerning(linesToAppend: List<FigCharLine>) {
         val overlap = getKerningAdjustment(linesToAppend)
 
         assert(lines.size == linesToAppend.size)
@@ -41,8 +49,7 @@ internal class FigureBuilder(
         }
     }
 
-    private fun appendSmushing(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
+    private fun appendSmushing(linesToAppend: List<FigCharLine>) {
         val (adjustment, replacements) = getSmushingAdjustment(linesToAppend)
 
         // TODO: Look into a zip implementation
