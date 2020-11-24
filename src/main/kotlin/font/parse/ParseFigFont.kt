@@ -1,6 +1,15 @@
-package font.internal
+package font.parse
 
-internal class FigFontHeader(
+import font.FigFont
+import layout.PrintDirection
+import util.CARRIAGE_RETURN
+import util.NEW_LINE
+import util.NULL
+import util.SPACE
+import java.io.BufferedReader
+import java.io.InputStream
+
+private class FigFontHeader(
     val hardblank: Int,
     val height: Int,
     val baseline: Int,
@@ -11,7 +20,31 @@ internal class FigFontHeader(
     val fullLayout: Int?
 )
 
-internal fun parseFigFontHeader(headerLine: String): FigFontHeader {
+internal fun parseFigFont(fontFile: InputStream): FigFont = fontFile.bufferedReader().use { reader ->
+    val headerLine = reader.readLine() ?: throw Exception("Could not read header line")
+    val header = parseFigFontHeader(headerLine)
+    val printDirection = parsePrintDirection(header.printDirection)
+    val layout = when (header.fullLayout) {
+        null -> parseOldLayout(header.oldLayout)
+        else -> parseFullLayout(header.fullLayout)
+    }
+
+    val comments = readComments(header.commentLines, reader)
+    val chars = parseChars(reader, header.maxLength, header.height)
+
+    FigFont(
+        hardblank = header.hardblank,
+        height = header.height,
+        baseline = header.baseline,
+        maxLength = header.maxLength,
+        printDirection = printDirection,
+        comments = comments,
+        layout = layout,
+        figCharMap = chars
+    )
+}
+
+private fun parseFigFontHeader(headerLine: String): FigFontHeader {
     val params = headerLine.split(" ").filter { it.isNotEmpty() }
     if (params.size < 6) {
         throw Exception("Malformed header, TODO")
@@ -54,7 +87,7 @@ private fun parseSignature(signatureAndHardblank: String): Int {
     }
 
     return when (val hardblank = signatureParts[1].codePointAt(0)) {
-        32, 13, 10, 0 -> throw Exception("Invalid hardblank character")
+        SPACE, CARRIAGE_RETURN, NEW_LINE, NULL -> throw Exception("Invalid hardblank character")
         else -> hardblank
     }
 }
@@ -72,3 +105,21 @@ private fun parseBaseline(baselineParam: String, fontHeight: Int): Int {
 private fun parseNumericParam(param: String, paramName: String): Int {
     return param.toIntOrNull() ?: throw Exception("Could not parse $paramName")
 }
+
+private fun parsePrintDirection(printDirection: Int): PrintDirection {
+    return when (printDirection) {
+        0 -> PrintDirection.LeftToRight
+        1 -> PrintDirection.RightToLeft
+        else -> throw Exception("Print direction must be either 0 or 1")
+    }
+}
+
+private fun readComments(numLines: Int, reader: BufferedReader): String {
+    val lines = List(numLines) {
+        reader.readLine()
+            ?: throw Exception("Expected $numLines lines of comments, only received $it")
+    }
+
+    return lines.joinToString(separator = System.lineSeparator())
+}
+

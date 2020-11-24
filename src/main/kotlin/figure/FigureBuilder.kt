@@ -2,31 +2,36 @@ package figure
 
 import font.FigCharLine
 import font.FigFont
-import font.HorizontalLayoutMode
-import util.toInt
+import layout.HorizontalLayoutMode
+import kotlin.streams.toList
 
-/**
- * TODO: Should this also be internal?
- */
-public class FigureBuilder(
+internal class FigureBuilder(
     private val font: FigFont
 ) {
     private val lines = Array(font.height) { FigureLineBuilder() }
 
-    public fun append(text: String) {
+    fun append(text: String) {
         val horizontalLayout = font.horizontalLayout
-        val codePoints = text.codePoints()
+        val linesToAppend = text.codePoints().toList().mapNotNull { codePoint ->
+            font[codePoint]?.lines
+        }
+
+        // TODO: Handling newlines
 
         when (horizontalLayout) {
-            HorizontalLayoutMode.FullWidth -> codePoints.forEach { appendFullWidth(it) }
-            HorizontalLayoutMode.Kerning -> codePoints.forEach { appendKerning(it) }
-            HorizontalLayoutMode.Smushing -> codePoints.forEach { appendSmushing(it) }
+            HorizontalLayoutMode.FullWidth -> linesToAppend.forEach { lines ->
+                appendFullWidth(lines)
+            }
+            HorizontalLayoutMode.Kerning -> linesToAppend.forEach { lines ->
+                appendKerning(lines)
+            }
+            HorizontalLayoutMode.Smushing -> linesToAppend.forEach { lines ->
+                appendSmushing(lines)
+            }
         }
     }
 
-    private fun appendFullWidth(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
-
+    private fun appendFullWidth(linesToAppend: List<FigCharLine>) {
         assert(lines.size == linesToAppend.size)
 
         lines.forEachIndexed { i, line ->
@@ -34,8 +39,7 @@ public class FigureBuilder(
         }
     }
 
-    private fun appendKerning(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
+    private fun appendKerning(linesToAppend: List<FigCharLine>) {
         val overlap = getKerningAdjustment(linesToAppend)
 
         assert(lines.size == linesToAppend.size)
@@ -45,8 +49,7 @@ public class FigureBuilder(
         }
     }
 
-    private fun appendSmushing(codePoint: Int) {
-        val linesToAppend = font[codePoint]?.lines ?: return
+    private fun appendSmushing(linesToAppend: List<FigCharLine>) {
         val (adjustment, replacements) = getSmushingAdjustment(linesToAppend)
 
         // TODO: Look into a zip implementation
@@ -89,97 +92,11 @@ public class FigureBuilder(
         return Pair(smallestAdjustment, replacements)
     }
 
-    public fun buildFigure(): String {
+    fun buildFigure(): String {
         val hardblank = font.hardblank
 
         return lines
             .fold(StringBuilder()) { builder, next -> builder.append(next.toString(hardblank)) }
             .toString()
-    }
-}
-
-private class FigureLineBuilder {
-    private val subChars = mutableListOf<Int>()
-    var trailingSpaces = 0
-        private set
-
-    fun getKerningAdjustment(figCharLine: FigCharLine): Int {
-        return trailingSpaces + figCharLine.leadingSpaces
-    }
-
-    fun getSmushingAdjustment(figCharLine: FigCharLine, font: FigFont): Pair<Int, Int?> {
-        val kerningAdjustment = getKerningAdjustment(figCharLine)
-        val smushedSubChar = getSmushedSubCharacter(figCharLine, font)
-        val smushAdjustment = (smushedSubChar != null).toInt()
-
-        return Pair(kerningAdjustment + smushAdjustment, smushedSubChar)
-    }
-
-    private fun getSmushedSubCharacter(figCharLine: FigCharLine, font: FigFont): Int? {
-        val left = subChars.lastOrNull() ?: return null
-        val right = figCharLine.trimmedCodePoints.firstOrNull() ?: return null
-
-        return font.tryHorizontalSmush(left, right)
-    }
-
-    fun append(line: FigCharLine, overlap: Int = 0) {
-        if (line.isEmpty) {
-            trailingSpaces += line.length - overlap
-        } else {
-            val spacesToAdd = when {
-                subChars.isEmpty() -> line.leadingSpaces
-                else -> trailingSpaces + line.leadingSpaces - overlap
-            }
-
-            if (spacesToAdd < 0) {
-                trimEnd(-spacesToAdd)
-            } else {
-                appendSpaces(spacesToAdd)
-            }
-
-            appendCodePoints(line.trimmedCodePoints)
-            trailingSpaces = line.trailingSpaces
-        }
-    }
-
-    private fun trimEnd(trimCount: Int) {
-        val trimStart = subChars.size - trimCount
-        if (trimStart >= 0) {
-            subChars.subList(trimStart, subChars.size).clear()
-        }
-    }
-
-    private fun appendSpaces(numSpaces: Int) {
-        val spaceCodePoint = ' '.toInt()
-
-        subChars.apply {
-            repeat(times = numSpaces) {
-                add(spaceCodePoint)
-            }
-        }
-    }
-
-    private fun appendCodePoints(codePoints: List<Int>) {
-        subChars.apply {
-            codePoints.forEach {
-                add(it)
-            }
-        }
-    }
-
-    override fun toString(): String {
-        return toString('$'.toInt())
-    }
-
-    fun toString(hardblank: Int): String {
-        val spaceCodePoint = ' '.toInt()
-        val lineBuilder = StringBuilder().apply {
-            subChars.forEach {
-                val codePoint = if (it == hardblank) spaceCodePoint else it
-                appendCodePoint(codePoint)
-            }
-        }
-
-        return "${lineBuilder}${System.lineSeparator()}"
     }
 }
