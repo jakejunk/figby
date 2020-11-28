@@ -3,7 +3,7 @@ package font
 import util.leading
 import util.trailing
 
-internal class FigCharLine {
+internal class FigCharRow {
     val leadingSpaces: Int
     val trailingSpaces: Int
     val trimmedCodePoints: List<Int>
@@ -18,7 +18,7 @@ internal class FigCharLine {
         }
     }
 
-    private constructor(other: FigCharLine, smushResult: Int) {
+    private constructor(other: FigCharRow, smushResult: Int) {
         leadingSpaces = other.leadingSpaces
         trailingSpaces = other.trailingSpaces
         trimmedCodePoints = other.trimmedCodePoints
@@ -35,7 +35,7 @@ internal class FigCharLine {
             else -> leadingSpaces + trailingSpaces + trimmedCodePoints.size
         }
 
-    infix fun butStartsWith(smushResult: Int): FigCharLine {
-        return FigCharLine(this, smushResult)
+    infix fun butStartsWith(smushResult: Int): FigCharRow {
+        return FigCharRow(this, smushResult)
     }
 }

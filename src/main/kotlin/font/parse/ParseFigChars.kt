@@ -1,7 +1,7 @@
 package font.parse
 
 import font.FigChar
-import font.FigCharLine
+import font.FigCharRow
 import java.io.BufferedReader
 import kotlin.streams.toList
 
@@ -45,32 +45,32 @@ private fun parseCodeTag(src: BufferedReader): Int? {
 }
 
 private fun parseSingleLetter(src: BufferedReader, maxLength: Int, height: Int): FigChar {
-    val firstLine = readLetterLine(src, maxLength)
-    val lines = mutableListOf(firstLine)
+    val firstRow = readSubCharRow(src, maxLength)
+    val rows = mutableListOf(firstRow)
 
     repeat(height - 1) {
-        val line = readLetterLine(src, maxLength)
-        if (line.length != firstLine.length) {
-            throw Exception("Expected a width of ${firstLine.length}, found ${line.length} characters")
+        val row = readSubCharRow(src, maxLength)
+        if (row.length != firstRow.length) {
+            throw Exception("Expected a width of ${firstRow.length}, found ${row.length} characters")
         }
 
-        lines.add(line)
+        rows.add(row)
     }
 
-    return FigChar(lines)
+    return FigChar(rows)
 }
 
-private fun readLetterLine(src: BufferedReader, maxLength: Int): FigCharLine {
-    val line = src.readLine()
+private fun readSubCharRow(src: BufferedReader, maxLength: Int): FigCharRow {
+    val subCharRow = src.readLine()
         ?: throw Exception("Unexpected end of sub-character input")
 
-    if (line.length > maxLength) {
-        throw Exception("Character line width exceeds specified max length (${line.length} > $maxLength)")
+    if (subCharRow.length > maxLength) {
+        throw Exception("Sub-character row width exceeds specified max length (${subCharRow.length} > $maxLength)")
     }
 
-    val subChars = line.split('@')[0]
+    val subChars = subCharRow.split('@')[0]
         .codePoints()
         .toList()
 
-    return FigCharLine(subChars)
+    return FigCharRow(subChars)
 }

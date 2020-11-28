@@ -1,6 +1,6 @@
 package figure
 
-import font.FigCharLine
+import font.FigCharRow
 import font.FigFont
 import layout.HorizontalLayoutMode
 import kotlin.streams.toList
@@ -8,78 +8,77 @@ import kotlin.streams.toList
 internal class FigureBuilder(
     private val font: FigFont
 ) {
-    private val lines = Array(font.height) { FigureLineBuilder() }
+    private val rows = Array(font.height) { FigureRowBuilder() }
+    private var startedLine = false
 
     fun append(text: String) {
         val horizontalLayout = font.horizontalLayout
-        val linesToAppend = text.codePoints().toList().mapNotNull { codePoint ->
-            font[codePoint]?.lines
+        val rowsToAppend = text.codePoints().toList().mapNotNull { codePoint ->
+            font[codePoint]?.rows
         }
 
         // TODO: Handling newlines
 
         when (horizontalLayout) {
-            HorizontalLayoutMode.FullWidth -> linesToAppend.forEach { lines ->
-                appendFullWidth(lines)
+            HorizontalLayoutMode.FullWidth -> rowsToAppend.forEach { rows ->
+                appendFullWidth(rows)
             }
-            HorizontalLayoutMode.Kerning -> linesToAppend.forEach { lines ->
-                appendKerning(lines)
+            HorizontalLayoutMode.Kerning -> rowsToAppend.forEach { rows ->
+                if (startedLine) {
+                    appendKerning(rows)
+                } else {
+                    appendFullWidth(rows)
+                    startedLine = true
+                }
             }
-            HorizontalLayoutMode.Smushing -> linesToAppend.forEach { lines ->
-                appendSmushing(lines)
+            HorizontalLayoutMode.Smushing -> rowsToAppend.forEach { rows ->
+                if (startedLine) {
+                    appendSmushing(rows)
+                } else {
+                    appendFullWidth(rows)
+                    startedLine = true
+                }
             }
         }
     }
 
-    private fun appendFullWidth(linesToAppend: List<FigCharLine>) {
-        assert(lines.size == linesToAppend.size)
-
-        lines.forEachIndexed { i, line ->
-            line.append(linesToAppend[i])
+    private fun appendFullWidth(rowsToAppend: List<FigCharRow>) {
+        (rows zip rowsToAppend).forEach { (row, rowToAppend) ->
+            row.append(rowToAppend)
         }
     }
 
-    private fun appendKerning(linesToAppend: List<FigCharLine>) {
-        val overlap = getKerningAdjustment(linesToAppend)
+    private fun appendKerning(rowsToAppend: List<FigCharRow>) {
+        val adjustment = getKerningAdjustment(rowsToAppend)
 
-        assert(lines.size == linesToAppend.size)
-
-        lines.forEachIndexed { i, line ->
-            line.append(linesToAppend[i], overlap)
+        (rows zip rowsToAppend).forEach { (row, rowToAppend) ->
+            row.append(rowToAppend, adjustment)
         }
     }
 
-    private fun appendSmushing(linesToAppend: List<FigCharLine>) {
-        val (adjustment, replacements) = getSmushingAdjustment(linesToAppend)
+    private fun appendSmushing(rowsToAppend: List<FigCharRow>) {
+        val (adjustment, smushResults) = getSmushingAdjustment(rowsToAppend)
 
-        // TODO: Look into a zip implementation
-
-        assert(lines.size == linesToAppend.size)
-        assert(lines.size == replacements.size)
-
-        lines.forEachIndexed { i, line ->
-            val smushResult = replacements[i]
-            val originalLine = linesToAppend[i]
-            val lineToAppend = when {
-                smushResult != null -> originalLine butStartsWith smushResult
-                else -> originalLine
+        (rows zip rowsToAppend zip smushResults).forEach { (rows, smushResult) ->
+            val (row, rowToAppend) = rows
+            val smushedRowToAppend = when (smushResult) {
+                null -> rowToAppend
+                else -> rowToAppend butStartsWith smushResult
             }
 
-            line.append(lineToAppend, adjustment)
+            row.append(smushedRowToAppend, adjustment)
         }
     }
 
-    private fun getKerningAdjustment(linesToAppend: List<FigCharLine>): Int {
-        return lines
-            .mapIndexed { i, line -> line.getKerningAdjustment(linesToAppend[i]) }
+    private fun getKerningAdjustment(rowsToAppend: List<FigCharRow>): Int {
+        return (rows zip rowsToAppend)
+            .map { (row, rowToAppend) -> row.getKerningAdjustment(rowToAppend) }
             .minOrNull() ?: 0
     }
 
-    private fun getSmushingAdjustment(linesToAppend: List<FigCharLine>): Pair<Int, List<Int?>> {
-        val adjustments = lines
-            .mapIndexed { i, line ->
-                line.getSmushingAdjustment(linesToAppend[i], font)
-            }
+    private fun getSmushingAdjustment(rowsToAppend: List<FigCharRow>): Pair<Int, List<Int?>> {
+        val adjustments = (rows zip rowsToAppend)
+            .map { (row, rowToAppend) -> row.getSmushingAdjustment(rowToAppend, font) }
 
         val smallestAdjustment = adjustments
             .minOf { (adjustment, _) -> adjustment }
@@ -95,7 +94,7 @@ internal class FigureBuilder(
     fun buildFigure(): String {
         val hardblank = font.hardblank
 
-        return lines
+        return rows
             .fold(StringBuilder()) { builder, next -> builder.append(next.toString(hardblank)) }
             .toString()
     }
