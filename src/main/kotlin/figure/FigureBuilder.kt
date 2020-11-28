@@ -9,7 +9,7 @@ internal class FigureBuilder(
     private val font: FigFont
 ) {
     private val rows = Array(font.height) { FigureRowBuilder() }
-    private var startedLine = false
+    private var lineStarted = false
 
     fun append(text: String) {
         val horizontalLayout = font.horizontalLayout
@@ -17,28 +17,17 @@ internal class FigureBuilder(
             font[codePoint]?.rows
         }
 
-        // TODO: Handling newlines
+        rowsToAppend.forEach { figCharRows ->
+            // TODO: Handling newlines
 
-        when (horizontalLayout) {
-            HorizontalLayoutMode.FullWidth -> rowsToAppend.forEach { rows ->
-                appendFullWidth(rows)
+            when {
+                lineStarted -> appendFullWidth(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.FullWidth -> appendFullWidth(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.Kerning -> appendKerning(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.Smushing -> appendSmushing(figCharRows)
             }
-            HorizontalLayoutMode.Kerning -> rowsToAppend.forEach { rows ->
-                if (startedLine) {
-                    appendKerning(rows)
-                } else {
-                    appendFullWidth(rows)
-                    startedLine = true
-                }
-            }
-            HorizontalLayoutMode.Smushing -> rowsToAppend.forEach { rows ->
-                if (startedLine) {
-                    appendSmushing(rows)
-                } else {
-                    appendFullWidth(rows)
-                    startedLine = true
-                }
-            }
+
+            lineStarted = true
         }
     }
 
