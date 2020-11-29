@@ -7,14 +7,11 @@ import dev.junker.figby.font.FigFont
  * TODO
  */
 public class FigDriver(
-    private val font: FigFont
+    font: FigFont
 ) {
+    private val builder = FigureBuilder(font)
+
     public fun convert(text: String): String {
-        // TODO: This would probably be better as a factory
-        val builder = FigureBuilder(font)
-
-        builder.append(text)
-
-        return builder.buildFigure()
+        return builder.buildFigure(text)
     }
 }

@@ -8,47 +8,53 @@ import kotlin.streams.toList
 internal class FigureBuilder(
     private val font: FigFont
 ) {
-    private val rows = Array(font.height) { FigureRowBuilder() }
-    private var lineStarted = false
-
-    fun append(text: String) {
+    fun buildFigure(text: String): String {
+        val rows = Array(font.height) { FigureRowBuilder() }
         val horizontalLayout = font.horizontalLayout
         val rowsToAppend = text.codePoints().toList().mapNotNull { codePoint ->
             font[codePoint]?.rows
         }
 
+        var lineStarted = false
+
         rowsToAppend.forEach { figCharRows ->
             // TODO: Handling newlines
 
             when {
-                !lineStarted -> appendFullWidth(figCharRows)
-                horizontalLayout == HorizontalLayoutMode.FullWidth -> appendFullWidth(figCharRows)
-                horizontalLayout == HorizontalLayoutMode.Kerning -> appendKerning(figCharRows)
-                horizontalLayout == HorizontalLayoutMode.Smushing -> appendSmushing(figCharRows)
+                !lineStarted -> rows.appendFullWidth(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.FullWidth -> rows.appendFullWidth(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.Kerning -> rows.appendKerning(figCharRows)
+                horizontalLayout == HorizontalLayoutMode.Smushing -> rows.appendSmushing(figCharRows)
             }
 
             lineStarted = true
         }
+
+        return buildString {
+            rows.forEach { rowBuilder ->
+                append(rowBuilder.toString(font.hardblank))
+            }
+        }
     }
 
-    private fun appendFullWidth(rowsToAppend: List<FigCharRow>) {
-        (rows zip rowsToAppend).forEach { (row, rowToAppend) ->
+    private fun Array<FigureRowBuilder>.appendFullWidth(rowsToAppend: List<FigCharRow>) {
+        (this zip rowsToAppend).forEach { (row, rowToAppend) ->
             row.append(rowToAppend)
         }
     }
 
-    private fun appendKerning(rowsToAppend: List<FigCharRow>) {
+    private fun Array<FigureRowBuilder>.appendKerning(rowsToAppend: List<FigCharRow>) {
         val adjustment = getKerningAdjustment(rowsToAppend)
 
-        (rows zip rowsToAppend).forEach { (row, rowToAppend) ->
+        (this zip rowsToAppend).forEach { (row, rowToAppend) ->
             row.append(rowToAppend, adjustment)
         }
     }
 
-    private fun appendSmushing(rowsToAppend: List<FigCharRow>) {
+    private fun Array<FigureRowBuilder>.appendSmushing(rowsToAppend: List<FigCharRow>) {
         val (adjustment, smushResults) = getSmushingAdjustment(rowsToAppend)
 
-        (rows zip rowsToAppend zip smushResults).forEach { (rows, smushResult) ->
+        (this zip rowsToAppend zip smushResults).forEach { (rows, smushResult) ->
             val (row, rowToAppend) = rows
             val smushedRowToAppend = when (smushResult) {
                 null -> rowToAppend
@@ -59,14 +65,14 @@ internal class FigureBuilder(
         }
     }
 
-    private fun getKerningAdjustment(rowsToAppend: List<FigCharRow>): Int {
-        return (rows zip rowsToAppend)
+    private fun Array<FigureRowBuilder>.getKerningAdjustment(rowsToAppend: List<FigCharRow>): Int {
+        return (this zip rowsToAppend)
             .map { (row, rowToAppend) -> row.getKerningAdjustment(rowToAppend) }
             .minOrNull() ?: 0
     }
 
-    private fun getSmushingAdjustment(rowsToAppend: List<FigCharRow>): Pair<Int, List<Int?>> {
-        val adjustments = (rows zip rowsToAppend)
+    private fun Array<FigureRowBuilder>.getSmushingAdjustment(rowsToAppend: List<FigCharRow>): Pair<Int, List<Int?>> {
+        val adjustments = (this zip rowsToAppend)
             .map { (row, rowToAppend) -> row.getSmushingAdjustment(rowToAppend, font) }
 
         val smallestAdjustment = adjustments
@@ -78,15 +84,5 @@ internal class FigureBuilder(
             }
 
         return Pair(smallestAdjustment, replacements)
-    }
-
-    fun buildFigure(): String {
-        val hardblank = font.hardblank
-
-        return buildString {
-            rows.forEach { rowBuilder ->
-                append(rowBuilder.toString(hardblank))
-            }
-        }
     }
 }

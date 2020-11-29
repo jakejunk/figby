@@ -8,5 +8,5 @@ fun main() {
     val font = FigFont.fromFile(fontFile)
     val driver = FigDriver(font)
 
-    print(driver.convert("Figby"))
+    print(driver.convert("Figby Test 123"))
 }
