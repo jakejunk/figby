@@ -1,4 +1,4 @@
-package dev.junker.figby.figure
+package dev.junker.figby
 
 /**
  * The output image created by a [FigDriver][dev.junker.figby.FigDriver].

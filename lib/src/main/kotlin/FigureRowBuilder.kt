@@ -1,4 +1,4 @@
-package dev.junker.figby.figure
+package dev.junker.figby
 
 import dev.junker.figby.font.FigCharRow
 import dev.junker.figby.font.FigFont
