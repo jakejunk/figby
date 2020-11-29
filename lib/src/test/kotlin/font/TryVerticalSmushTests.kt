@@ -1,11 +1,11 @@
 package font
 
+import dev.junker.figby.layout.VerticalSmushingRule
 import helpers.*
 import helpers.generators.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
-import layout.VerticalSmushingRule
 
 class TryVerticalSmushTests : ShouldSpec({
     /**

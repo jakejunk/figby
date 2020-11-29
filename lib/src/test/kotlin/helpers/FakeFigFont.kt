@@ -1,7 +1,8 @@
 package helpers
 
-import font.*
-import layout.*
+import dev.junker.figby.font.FigChar
+import dev.junker.figby.font.FigFont
+import dev.junker.figby.layout.*
 
 fun fakeFontWithHorizontalRules(hardblank: Int, vararg rules: HorizontalSmushingRule): FigFont {
     val layout = Layout(

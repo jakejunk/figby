@@ -1,14 +1,15 @@
 package font
 
+import dev.junker.figby.font.FigFont
+import dev.junker.figby.layout.HorizontalLayoutMode
+import dev.junker.figby.layout.HorizontalSmushingRule
+import dev.junker.figby.layout.PrintDirection
 import helpers.fakeFigFontFile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import layout.HorizontalLayoutMode
-import layout.HorizontalSmushingRule
-import layout.PrintDirection
 
 class ParseFigFontTests : ShouldSpec({
     should("return font when given all valid parameters") {
