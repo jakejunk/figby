@@ -83,8 +83,10 @@ internal class FigureBuilder(
     fun buildFigure(): String {
         val hardblank = font.hardblank
 
-        return rows
-            .fold(StringBuilder()) { builder, next -> builder.append(next.toString(hardblank)) }
-            .toString()
+        return buildString {
+            rows.forEach { rowBuilder ->
+                append(rowBuilder.toString(hardblank))
+            }
+        }
     }
 }
