@@ -21,7 +21,7 @@ internal class FigureBuilder(
             // TODO: Handling newlines
 
             when {
-                lineStarted -> appendFullWidth(figCharRows)
+                !lineStarted -> appendFullWidth(figCharRows)
                 horizontalLayout == HorizontalLayoutMode.FullWidth -> appendFullWidth(figCharRows)
                 horizontalLayout == HorizontalLayoutMode.Kerning -> appendKerning(figCharRows)
                 horizontalLayout == HorizontalLayoutMode.Smushing -> appendSmushing(figCharRows)
