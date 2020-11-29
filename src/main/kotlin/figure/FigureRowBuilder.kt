@@ -1,43 +1,39 @@
 package figure
 
-import font.FigCharLine
+import font.FigCharRow
 import font.FigFont
 
-internal class FigureLineBuilder {
+internal class FigureRowBuilder {
     private val subChars = mutableListOf<Int>()
-    var trailingSpaces = 0
-        private set
+    private var trailingSpaces = 0
 
-    fun getKerningAdjustment(figCharLine: FigCharLine): Int {
-        return trailingSpaces + figCharLine.leadingSpaces
+    fun getKerningAdjustment(figCharRow: FigCharRow): Int {
+        return trailingSpaces + figCharRow.leadingSpaces
     }
 
-    fun getSmushingAdjustment(figCharLine: FigCharLine, font: FigFont): Pair<Int, Int?> {
-        val kerningAdjustment = getKerningAdjustment(figCharLine)
-        val smushedSubChar = getSmushedSubCharacter(figCharLine, font)
+    fun getSmushingAdjustment(figCharRow: FigCharRow, font: FigFont): Pair<Int, Int?> {
+        val kerningAdjustment = getKerningAdjustment(figCharRow)
+        val smushedSubChar = getSmushedSubCharacter(figCharRow, font)
         val smushAdjustment = when (smushedSubChar) {
-            null -> 0
-            else -> 1
+            null -> kerningAdjustment
+            else -> kerningAdjustment + 1
         }
 
-        return Pair(kerningAdjustment + smushAdjustment, smushedSubChar)
+        return Pair(smushAdjustment, smushedSubChar)
     }
 
-    private fun getSmushedSubCharacter(figCharLine: FigCharLine, font: FigFont): Int? {
+    private fun getSmushedSubCharacter(figCharRow: FigCharRow, font: FigFont): Int? {
         val left = subChars.lastOrNull() ?: return null
-        val right = figCharLine.trimmedCodePoints.firstOrNull() ?: return null
+        val right = figCharRow.trimmedCodePoints.firstOrNull() ?: return null
 
         return font.tryHorizontalSmush(left, right)
     }
 
-    fun append(line: FigCharLine, overlap: Int = 0) {
-        if (line.isEmpty) {
-            trailingSpaces += line.length - overlap
+    fun append(row: FigCharRow, adjustment: Int = 0) {
+        if (row.isEmpty) {
+            trailingSpaces += row.length - adjustment
         } else {
-            val spacesToAdd = when {
-                subChars.isEmpty() -> line.leadingSpaces
-                else -> trailingSpaces + line.leadingSpaces - overlap
-            }
+            val spacesToAdd = trailingSpaces + row.leadingSpaces - adjustment
 
             if (spacesToAdd < 0) {
                 trimEnd(-spacesToAdd)
@@ -45,8 +41,8 @@ internal class FigureLineBuilder {
                 appendSpaces(spacesToAdd)
             }
 
-            appendCodePoints(line.trimmedCodePoints)
-            trailingSpaces = line.trailingSpaces
+            appendCodePoints(row.trimmedCodePoints)
+            trailingSpaces = row.trailingSpaces
         }
     }
 
@@ -81,13 +77,13 @@ internal class FigureLineBuilder {
 
     fun toString(hardblank: Int): String {
         val spaceCodePoint = ' '.toInt()
-        val lineBuilder = StringBuilder().apply {
+        val rowBuilder = StringBuilder().apply {
             subChars.forEach {
                 val codePoint = if (it == hardblank) spaceCodePoint else it
                 appendCodePoint(codePoint)
             }
         }
 
-        return "${lineBuilder}${System.lineSeparator()}"
+        return "${rowBuilder}${System.lineSeparator()}"
     }
 }

@@ -5,12 +5,12 @@ package font
  * representing a single character in a [FigFont].
  */
 public data class FigChar internal constructor(
-    internal val lines: List<FigCharLine>
+    internal val rows: List<FigCharRow>
 ) {
     val width: Int
-        get() = lines[0].length
+        get() = rows[0].length
 
     val height: Int
-        get() = lines.size
+        get() = rows.size
 }
 
