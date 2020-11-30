@@ -12,5 +12,13 @@ public data class FigChar internal constructor(
 
     val height: Int
         get() = rows.size
+
+    public override fun toString(): String {
+        return buildString {
+            rows.forEach { row ->
+                appendLine(row.toString())
+            }
+        }
+    }
 }
 
