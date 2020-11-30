@@ -1,0 +1,7 @@
+{
+    "name": "Gradle 6.6",
+    "image": "gradle:6.6-jdk14",
+    "extensions": [
+        "mathiasfrohlich.kotlin"
+    ]
+}

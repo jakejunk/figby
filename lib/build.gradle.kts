@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.*
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+
 val gitVersion: groovy.lang.Closure<String> by extra
 
 plugins {
@@ -21,5 +24,13 @@ dependencies {
 tasks {
     withType<Test> {
         useJUnitPlatform()
+
+        testLogging {
+            events(PASSED, FAILED, SKIPPED)
+            exceptionFormat = FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
     }
 }
