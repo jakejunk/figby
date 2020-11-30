@@ -8,5 +8,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "MainKt"
+    mainClassName = "com.example.MainKt"
 }
