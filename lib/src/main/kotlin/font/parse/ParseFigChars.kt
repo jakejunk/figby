@@ -68,7 +68,8 @@ private fun readSubCharRow(src: BufferedReader, maxLength: Int): FigCharRow {
         throw Exception("Sub-character row width exceeds specified max length (${subCharRow.length} > $maxLength)")
     }
 
-    val subChars = subCharRow.split('@')[0]
+    val endmark = subCharRow.last()
+    val subChars = subCharRow.split(endmark)[0]
         .codePoints()
         .toList()
 
