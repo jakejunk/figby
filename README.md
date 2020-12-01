@@ -29,6 +29,43 @@ o888o        o888o `8oooooo.   `Y8bod8P'     .8'
 */
 ```
 
+## Printing Individual Characters
+
+```kotlin
+val font: FigFont = // Roman, same as above
+
+println("'A':\n${font['A'.toInt()]}")
+println("'9':\n${font['9'.toInt()]}")
+
+/* Output
+
+'A':
+      .o.      $
+     .888.     $
+    .8"888.    $
+   .8' `888.   $
+  .88ooo8888.  $
+ .8'     `888. $
+o88o     o8888o$
+               $
+               $
+               $
+
+'9':
+ .ooooo.  $
+888' `Y88.$
+888    888$
+ `Vbood888$
+      888'$
+    .88P' $
+  .oP'    $
+          $
+          $
+          $
+
+*/
+```
+
 ## Fetching Font Metadata
 
 ```kotlin
