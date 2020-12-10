@@ -1,11 +1,10 @@
 # Figby
 
-Library for rendering FIGfonts (ascii text banners).
+Library for rendering ASCII text banners from FIGfonts.
 
 ## Rendering Fonts
 
 ```kotlin
-
 // Font is "Roman", by Nick Miners (http://www.figlet.org/fonts/roman.flf)
 
 val fontFile: InputStream = // FIGfont file
@@ -13,9 +12,11 @@ val font = FigFont.fromFile(fontFile)
 val driver = FigDriver(font)
 
 println(driver.convert("Figby"))
+```
 
-/* Output
+Output:
 
+```
 oooooooooooo  o8o              .o8                   
 `888'     `8  `"'             "888                   
  888         oooo   .oooooooo  888oooo.  oooo    ooo 
@@ -26,7 +27,6 @@ o888o        o888o `8oooooo.   `Y8bod8P'     .8'
                    d"     YD             .o..P'      
                    "Y88888P'             `Y8P'       
                                                      
-*/
 ```
 
 ## Printing Individual Characters
@@ -36,9 +36,11 @@ val font: FigFont = // Roman, same as above
 
 println("'A':\n${font['A'.toInt()]}")
 println("'9':\n${font['9'.toInt()]}")
+```
 
-/* Output
+Output:
 
+```
 'A':
       .o.      $
      .888.     $
@@ -63,7 +65,6 @@ o88o     o8888o$
           $
           $
 
-*/
 ```
 
 ## Fetching Font Metadata
@@ -78,9 +79,11 @@ println("Max width: ${font.maxLength} characters")
 println("Print direction: ${font.printDirection}")
 println("Horizontal layout: ${font.horizontalLayout}")
 println("Vertical layout: ${font.verticalLayout}")
+```
 
-/* Output
+Output:
 
+```
 Hardblank: '$'
 Height: 10 characters
 Baseline: 10 characters
@@ -88,8 +91,6 @@ Max width: 30 characters
 Print direction: LeftToRight
 Horizontal layout: FullWidth
 Vertical layout: FullHeight
-
-*/
 ```
 
 A full example can be found in the `example` module [here](example/src/main/kotlin/main.kt).
@@ -101,7 +102,8 @@ A full example can be found in the `example` module [here](example/src/main/kotl
 
 ## TODO
 
-- [ ] CI/CD + Maven
+- [ ] CI/CD
+- [ ] Maven
 - [ ] Compressed FIGfont parsing
 - [ ] Multiline rendering
 - [ ] Vertical fitting/smushing
