@@ -1,4 +1,4 @@
 rootProject.name = "figby"
 
-include("lib")
+include("figby")
 include("example")
