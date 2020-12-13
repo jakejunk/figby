@@ -1,5 +1,7 @@
 # Figby
 
+[![CI Status](https://circleci.com/gh/jakejunk/figby.svg?style=shield)](https://app.circleci.com/pipelines/github/jakejunk/figby)
+
 Library for rendering ASCII text banners from FIGfonts.
 
 ## Rendering Fonts
@@ -102,7 +104,7 @@ A full example can be found in the `example` module [here](example/src/main/kotl
 
 ## TODO
 
-- [ ] CI/CD
+- [x] CI/CD
 - [ ] Maven
 - [ ] Compressed FIGfont parsing
 - [ ] Multiline rendering
