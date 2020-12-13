@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  build:
+    working_directory: ~/project
+    docker:
+      - image: gradle:6.6-jdk14
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: gradle :figby:assemble
+      - run:
+          name: Test
+          command: gradle :figby:test
+      - store_test_results:
+          path: figby/build/test-results

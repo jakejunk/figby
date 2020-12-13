@@ -23,6 +23,10 @@ dependencies {
 
 tasks {
     withType<Test> {
+        // TODO: Maybe seed property tests here?
+        // Don't cache test results
+        outputs.upToDateWhen { false }
+
         useJUnitPlatform()
 
         testLogging {
